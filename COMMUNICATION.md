@@ -13,11 +13,11 @@
 
 | Champ | Info |
 |-------|------|
-| Code projet | _(ex : DI-BKT)_ |
-| APS | _(ex : Basketball)_ |
-| Classe | _(ex : COLL1)_ |
-| Code équipe | _(ex : COLL1_EQ_03)_ |
-| Membres | Prénom NOM · Prénom NOM · Prénom NOM · Prénom NOM |
+| Code projet | DI-POI |
+| APS | LANCER DE POIDS |
+| Classe |COLL1|
+| Code équipe | COLL1_EQ_09|
+| Membres | Aboubaker KHANIAANI , Mohamed OUBLAL , Abdelhakim ELHAMID ,Ihssane DEKHNAOU|
 | Formateur responsable | BOUARGANE |
 
 ---
@@ -31,11 +31,10 @@
 -->
 
 ### Message #1 — [Semaine X] · [Date]
-**De :** _Prénom NOM_
-**Objet :** _ex : Question sur les seuils A/B/C_
+**De : Abouabker KHANIAANI
+**Objet : A propos limportation des files sur github
 
-_Écrire le message ici. Être précis : décrire le problème, ce qui a déjà été essayé, ce qui bloque._
-
+Je souhaiterais me renseigner concernant les fichiers sur GitHub(outil;prompts,rapport,terrain ) ; que devons-nous inclure dans chaque fichier ?
 **Statut :** ⏳ En attente de réponse
 
 ---
