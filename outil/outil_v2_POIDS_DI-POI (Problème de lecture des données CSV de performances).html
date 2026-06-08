@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outil ADP 2026 — Lancer de Poids DI-POI</title>
+<style>
+  /* ===== DESIGN SYSTEM ===== */
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22253a;
+    --border: #2e3250;
+    --accent: #4f8ef7;
+    --accent2: #f7c94f;
+    --green: #3ecf8e;
+    --orange: #f79c4f;
+    --red: #f75f5f;
+    --text: #e8eaf2;
+    --text2: #8b91b5;
+    --radius: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    width: 42px; height: 42px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  header h1 { font-size: 16px; font-weight: 700; color: var(--text); }
+  header p { font-size: 11px; color: var(--text2); }
+  .print-btn {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .print-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* STEP INDICATOR */
+  .steps-bar {
+    display: flex; align-items: center;
+    gap: 0; padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text2); cursor: default; white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .step-item.active { background: var(--accent); color: #fff; }
+  .step-item.done { color: var(--green); }
+  .step-sep { color: var(--border); margin: 0 4px; }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+  .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text2); }
+
+  /* FORM */
+  .student-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px 70px 70px 75px 36px;
+    gap: 6px; margin-bottom: 6px; align-items: center;
+  }
+  .student-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .student-row input:focus { outline: none; border-color: var(--accent); }
+  .student-row input.err { border-color: var(--red); }
+  /* PERF input : feedback visuel selon seuil de performance */
+  .student-row input.perf-low  { border-color: var(--red);    color: #f79090; }
+  .student-row input.perf-ok   { border-color: var(--orange); color: #f7c94f; }
+  .student-row input.perf-high { border-color: var(--green);  color: #3ecf8e; }
+  .row-num { color: var(--text2); font-size: 12px; text-align: center; }
+  .form-header {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px 70px 70px 75px 36px;
+    gap: 6px; margin-bottom: 8px;
+  }
+  .form-header span { font-size: 11px; color: var(--text2); font-weight: 600; text-align: center; }
+  .form-header span:nth-child(2) { text-align: left; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7be0; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-success { background: var(--green); color: #000; }
+  .btn-success:hover { background: #2eb87a; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* IMPORT */
+  .import-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .import-zone:hover { border-color: var(--accent); }
+  .import-zone p { color: var(--text2); font-size: 13px; }
+  #csv-input { display: none; }
+
+  /* ALERT */
+  .alert {
+    padding: 10px 14px; border-radius: 7px;
+    font-size: 12px; margin-bottom: 12px;
+  }
+  .alert-info { background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); color: #90b8ff; }
+  .alert-warn { background: rgba(247,156,79,0.15); border: 1px solid rgba(247,156,79,0.3); color: #f7c94f; }
+  .alert-err  { background: rgba(247,95,95,0.15);  border: 1px solid rgba(247,95,95,0.3);  color: #f79090; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: var(--surface2); color: var(--text2);
+    padding: 8px 10px; text-align: left; font-weight: 600;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .data-table td {
+    padding: 7px 10px; border-bottom: 1px solid rgba(46,50,80,0.5);
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: rgba(79,142,247,0.05); }
+  .data-table tr.prof-A td { background: rgba(247,95,95,0.06); }
+  .data-table tr.prof-B td { background: rgba(247,156,79,0.06); }
+  .data-table tr.prof-C td { background: rgba(62,207,142,0.06); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-A { background: rgba(247,95,95,0.2); color: #f79090; }
+  .badge-B { background: rgba(247,156,79,0.2); color: #f7c94f; }
+  .badge-C { background: rgba(62,207,142,0.2); color: #3ecf8e; }
+
+  /* STAT CARDS */
+  .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; text-align: center;
+  }
+  .stat-card .val { font-size: 26px; font-weight: 800; }
+  .stat-card .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .stat-card.A .val { color: var(--red); }
+  .stat-card.B .val { color: var(--orange); }
+  .stat-card.C .val { color: var(--green); }
+  .stat-card.avg .val { color: var(--accent); }
+
+  /* AXES SELECTION */
+  .axe-item {
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .axe-item:hover { border-color: var(--accent); }
+  .axe-item.selected { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+  .axe-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--accent); }
+  .axe-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .axe-meta { font-size: 11px; color: var(--text2); }
+  .axe-pct { font-size: 20px; font-weight: 800; color: var(--accent2); float: right; }
+
+  /* SLIDER */
+  .slider-wrap { padding: 10px 0 20px; }
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: var(--border); border-radius: 3px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: var(--accent); border-radius: 50%; cursor: pointer;
+  }
+  .slider-labels { display: flex; justify-content: space-between; color: var(--text2); font-size: 11px; margin-top: 4px; }
+  .slider-display {
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin-top: 16px;
+    font-size: 13px;
+  }
+  .slider-display strong { color: var(--accent2); }
+
+  /* PLANNING */
+  .seq-block { margin-bottom: 24px; }
+  .seq-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 16px; border-radius: 8px 8px 0 0;
+    font-weight: 700; font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .seq-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .seq-table th {
+    background: var(--surface2); padding: 8px 10px;
+    border: 1px solid var(--border); color: var(--text2);
+    font-size: 11px;
+  }
+  .seq-table td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .seq-table td.grp-A { background: rgba(247,95,95,0.05); }
+  .seq-table td.grp-B { background: rgba(247,156,79,0.05); }
+  .seq-table td.grp-C { background: rgba(62,207,142,0.05); }
+  .sa-name { font-weight: 700; color: var(--accent2); }
+  .consigne { color: var(--text2); font-size: 11px; margin-top: 3px; }
+  .critere { color: var(--green); font-size: 11px; margin-top: 3px; font-style: italic; }
+  .indicatif {
+    background: rgba(139,145,181,0.1); border-left: 3px solid var(--text2);
+    padding: 6px 10px; font-size: 11px; color: var(--text2);
+    margin-top: 4px; border-radius: 0 4px 4px 0;
+  }
+
+  /* DECISION BOX */
+  .decision-box {
+    border: 2px solid var(--accent2);
+    border-radius: 10px; padding: 16px;
+    background: rgba(247,201,79,0.06);
+    margin-bottom: 20px;
+  }
+  .decision-box p { font-size: 13px; }
+  .decision-box strong { color: var(--accent2); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .student-row, .form-header { grid-template-columns: 25px 1fr 50px 50px 50px 60px 30px; }
+    .stat-cards { grid-template-columns: 1fr 1fr; }
+    main { padding: 12px; }
+    .seq-table { font-size: 11px; }
+  }
+
+  /* PRINT */
+  @media print {
+    header .print-btn, .steps-bar, .btn, .import-zone, input[type=range],
+    form, #step1-form, .no-print { display: none !important; }
+    body { background: #fff; color: #000; }
+    .card { border: 1px solid #ccc; }
+    .section { display: block !important; }
+    .section:not(.active) { display: none !important; }
+  }
+
+  /* Overflow tables */
+  .table-wrap { overflow-x: auto; }
+  .obs-analysis { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+  .obs-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px;
+  }
+  .obs-card .obs-title { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+  .obs-card .obs-val { font-size: 22px; font-weight: 800; }
+  .obs-card .obs-status { font-size: 11px; margin-top: 4px; }
+  .obs-card.lacune .obs-val { color: var(--red); }
+  .obs-card.cours .obs-val { color: var(--orange); }
+  .obs-card.bon .obs-val { color: var(--green); }
+  .groupe-need {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cycle-summary { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cycle-summary th { background: var(--surface2); padding: 8px; border: 1px solid var(--border); color: var(--text2); }
+  .cycle-summary td { padding: 8px; border: 1px solid var(--border); }
+  .reco-box {
+    background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 8px; padding: 14px; margin-top: 16px;
+    font-size: 13px; color: var(--text);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚙️</div>
+  <div>
+    <h1>Outil ADP 2026 — Lancer de Poids (DI-POI)</h1>
+    <p>CRMEF Inezgane · EPS · Aide à la décision pédagogique · L'outil ne produit pas de note</p>
+  </div>
+  <button class="print-btn" onclick="window.print()">🖨 Imprimer</button>
+</header>
+
+<div class="steps-bar">
+  <div class="step-item active" id="si1">① Diagnostic</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si2">② Axes prioritaires</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si3">③ Paramétrage</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si4">④ Planification</div>
+</div>
+
+<main>
+
+<!-- ===== ÉTAPE 1 ===== -->
+<div class="section active" id="step1">
+
+  <div class="card">
+    <h2>📋 Saisie des données élèves</h2>
+
+    <!-- Import CSV -->
+    <div class="import-zone" onclick="document.getElementById('csv-input').click()">
+      <p>📂 Importer un fichier CSV terrain (format ADP 2026)</p>
+      <p style="font-size:11px;margin-top:4px;">Format accepté : <strong>Nom_Eleve · TENUE · TRANS · EQUIL · PERF</strong> — séparateur <code>Tab</code>, <code>;</code> ou <code>,</code> — parenthèses (A) nettoyées automatiquement</p>
+    </div>
+    <input type="file" id="csv-input" accept=".csv,.txt" onchange="importCSV(event)">
+    <div id="import-msg"></div>
+
+    <!-- Manual entry -->
+    <div class="form-header">
+      <span>#</span><span>Prénom (obligatoire)</span>
+      <span>OBS-01<br><small>Tenue</small></span>
+      <span>OBS-02<br><small>Translation</small></span>
+      <span>OBS-03<br><small>Équilibre</small></span>
+      <span>PERF<br><small>en mètres</small></span>
+      <span></span>
+    </div>
+    <div id="rows-container"></div>
+
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="addRow()">+ Ajouter un élève</button>
+      <button class="btn btn-secondary" onclick="clearForm()">🗑 Vider</button>
+      <button class="btn btn-primary" onclick="analyser()">▶ Analyser la classe</button>
+      <button class="btn btn-secondary" onclick="exportCSV()" id="btn-export" style="display:none;">⬇ Export CSV</button>
+    </div>
+    <div id="form-err"></div>
+
+    <div class="alert alert-info" style="margin-top:14px;">
+      <strong>Légende :</strong> Saisir une valeur 0-10 OU le code lettre A (=3), B (=6), C (=9) par observable.
+      <br><strong>Seuils :</strong> Profil A &lt; 5,0 · Profil B entre 5,0 et 7,4 · Profil C ≥ 7,5
+    </div>
+  </div>
+
+  <!-- Results step 1 -->
+  <div id="results1" style="display:none;">
+
+    <div class="card">
+      <h2>📊 Bilan de classe</h2>
+      <div class="stat-cards" id="stat-cards"></div>
+      <div class="obs-analysis" id="obs-analysis"></div>
+      <div class="decision-box" id="decision-box"></div>
+      <div id="groupes-besoin"></div>
+    </div>
+
+    <div class="card">
+      <h2>🗂 Tableau individuel</h2>
+      <div class="table-wrap">
+        <table class="data-table" id="table-individuel">
+          <thead>
+            <tr>
+              <th>Rang</th><th>Prénom</th>
+              <th>OBS-01</th><th>OBS-02</th><th>OBS-03</th>
+              <th>PERF (m)</th>
+              <th>Moy/10</th><th>/20</th>
+              <th>Profil</th><th>Profil détaillé</th>
+              <th>Lacune(s)</th><th>Axe prioritaire</th><th>SA</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-individuel"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-success" onclick="goStep(2)">Passer à l'étape 2 — Axes prioritaires ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 2 ===== -->
+<div class="section" id="step2">
+  <div class="card">
+    <h2>🎯 Sélection des axes prioritaires</h2>
+    <div class="alert alert-warn">Sélectionnez <strong>3 ou 4 axes</strong> maximum. Les axes sont classés par pertinence selon les lacunes de votre classe.</div>
+    <div id="axes-list"></div>
+    <div id="axes-msg" style="margin-top:10px;"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(1)">‹ Retour</button>
+      <button class="btn btn-success" id="btn-step3" onclick="goStep(3)" disabled>Paramétrer le cycle — Étape 3 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 3 ===== -->
+<div class="section" id="step3">
+  <div class="card">
+    <h2>⚙️ Paramétrage du cycle</h2>
+    <h3>Nombre de séances</h3>
+    <div class="slider-wrap">
+      <input type="range" id="slider-seances" min="6" max="10" value="8" oninput="updateSlider()">
+      <div class="slider-labels">
+        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+      </div>
+    </div>
+    <div class="slider-display" id="slider-display"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(2)">‹ Retour</button>
+      <button class="btn btn-success" onclick="goStep(4)">Générer la planification — Étape 4 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 4 ===== -->
+<div class="section" id="step4">
+  <div class="card">
+    <h2>📅 Planification dynamique du cycle</h2>
+    <div id="planning-content"></div>
+    <div id="cycle-summary"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(3)">‹ Retour</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===================================================================
+// RÉFÉRENTIEL PÉDAGOGIQUE — ADP 2026 — Lancer de Poids DI-POI
+// Source : fichiers joints P1, P2, P3, TD2
+// ===================================================================
+
+// Seuils de profil (extraits du référentiel)
+var SEUIL_C = 7.5;
+var SEUIL_B = 5.0;
+
+// Codes métier vers valeur numérique
+function codeVersVal(code) {
+  var c = String(code).trim().toUpperCase();
+  if (c === 'A') return 3;
+  if (c === 'B') return 6;
+  if (c === 'C') return 9;
+  var n = parseFloat(c.replace(',', '.'));
+  if (!isNaN(n) && n >= 0 && n <= 10) return n;
+  return null;
+}
+
+// Profil depuis une valeur /10
+function valVersProfil(v) {
+  if (v >= SEUIL_C) return 'C';
+  if (v >= SEUIL_B) return 'B';
+  return 'A';
+}
+
+// Noms observables
+var OBS_NOMS = ['OBS-01 Tenue du poids', 'OBS-02 Translation', 'OBS-03 Équilibre/Explosivité'];
+
+// ===================================================================
+// AXES PÉDAGOGIQUES — extraits du référentiel TD2 (gemini-code)
+// ===================================================================
+var AXES = [
+  {
+    id: 1,
+    titre: "AXE 1 — Construction de la translation dynamique et fixation du poids au cou",
+    priorite: "HAUTE",
+    obs: 1, // OBS-02 index (0-based)
+    sa: [
+      {
+        nom: "SA 1.1 — Marche de profil avec engin au cou",
+        seances: "Séances 1-2",
+        groupeA: {
+          sa: "SA 1.1 Marche de profil",
+          consigne: "Se déplacer latéralement en maintenant le poids au cou-épaule sans le lâcher.",
+          critere: "Le poids reste en contact avec le cou pendant toute la marche."
+        },
+        groupeB: {
+          sa: "SA 1.1 Marche de profil (variante appuis)",
+          consigne: "Marche latérale avec poids cou-épaule, regard vers le secteur de jet.",
+          critere: "Orientation de profil maintenue sur au moins 5 mètres."
+        },
+        groupeC: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "Réaliser 2 pas chassés avec poids calé, enchaîner directement le jet.",
+          critere: "Absence d'arrêt entre la marche et le départ du jet."
+        },
+        indicatif: "Vérifier que l'élève oriente spontanément son épaule dominante en arrière lors de la prise en main."
+      },
+      {
+        nom: "SA 1.2 — Pas chassés de profil avec enchaînement guidé",
+        seances: "Séances 3-4",
+        groupeA: {
+          sa: "SA 1.1 Marche de profil",
+          consigne: "Répéter la marche de profil avec feedback visuel : regarder ses pieds restent en ligne.",
+          critere: "Les appuis restent parallèles à la direction de jet."
+        },
+        groupeB: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "2 pas chassés dans le couloir, marquer un appui arrière avant le jet.",
+          critere: "L'appui arrière est clairement visible avant l'impulsion."
+        },
+        groupeC: {
+          sa: "SA 1.3 Translation complète",
+          consigne: "Translation 2-3 appuis depuis la zone arrière, jet sans rupture.",
+          critere: "La distance mesurée est supérieure à la distance sans translation."
+        },
+        indicatif: "Observer si l'élève choisit spontanément le couloir latéral dans au moins 2 lancers sur 3."
+      },
+      {
+        nom: "SA 1.3 — Translation complète avec départ sur ligne arrière",
+        seances: "Séances 5-6",
+        groupeA: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "2 pas chassés avec signal sonore à l'appui arrière.",
+          critere: "L'appui arrière est posé avant que le bras commence à pousser."
+        },
+        groupeB: {
+          sa: "SA 1.3 Translation complète",
+          consigne: "Enchaîner translation et jet depuis la zone arrière, sans marquer d'arrêt.",
+          critere: "L'observateur ne perçoit pas d'interruption entre translation et impulsion."
+        },
+        groupeC: {
+          sa: "SA 1.3 Translation avec mesure",
+          consigne: "3 essais officiels : mesurer la distance, noter le code OBS-02.",
+          critere: "Code OBS-02 évalué à C (translation dynamique, retard du bras efficace)."
+        },
+        indicatif: "Vérifier que la translation est initiée sans que le bras ne commence à pousser prématurément."
+      }
+    ]
+  },
+  {
+    id: 2,
+    titre: "AXE 2 — Organisation de la poussée des jambes et orientation de l'énergie",
+    priorite: "MOYENNE",
+    obs: 2, // OBS-03 index (0-based)
+    sa: [
+      {
+        nom: "SA 2.1 — Extension complète depuis appui fixe",
+        seances: "Séances 5-6",
+        groupeA: {
+          sa: "SA 2.1 Extension depuis appui fixe",
+          consigne: "Position basse, poids au cou : pousser les jambes-tronc-bras en une seule chaîne.",
+          critere: "Le talon arrière se décolle du sol avant la fin du jet."
+        },
+        groupeB: {
+          sa: "SA 2.1 Extension avec cible visuelle",
+          consigne: "Même exercice avec une cible à 45° devant, orienter le poids vers la cible.",
+          critere: "Le poids passe au-dessus de la cible (corde ou repère)."
+        },
+        groupeC: {
+          sa: "SA 2.2 Translation + extension avec cible",
+          consigne: "Enchaîner translation (Axe 1 acquis) et extension vers cible haute.",
+          critere: "Orientation du jet au-dessus de la corde, rétablissement sans chute."
+        },
+        indicatif: "Observer si l'élève initie la poussée par les jambes avant d'engager le bras."
+      },
+      {
+        nom: "SA 2.2 — Translation + extension avec cible haute",
+        seances: "Séances 7-8",
+        groupeA: {
+          sa: "SA 2.1 Extension depuis appui fixe",
+          consigne: "Extension jambes-tronc-bras depuis position statique, 5 répétitions.",
+          critere: "Extension perceptible du corps de bas en haut avant le jet."
+        },
+        groupeB: {
+          sa: "SA 2.2 Translation + cible",
+          consigne: "Cible placée à 45°, enchaîner translation + extension vers la cible.",
+          critere: "Le jet dépasse la hauteur de la corde (repère à 2m)."
+        },
+        groupeC: {
+          sa: "SA 2.2 Extension + rétablissement",
+          consigne: "Extension totale suivie d'un changement d'appui maîtrisé.",
+          critere: "Rétablissement arrière sans sortie de zone ni perte d'équilibre."
+        },
+        indicatif: "Vérifier que l'élève maintient l'équilibre en fin de jet dans au moins 2 essais sur 3."
+      }
+    ]
+  },
+  {
+    id: 3,
+    titre: "AXE 3 — Liaison élan-frappe sans rupture et rétablissement maîtrisé",
+    priorite: "CONSOLIDATION",
+    obs: 0, // OBS-01 index (0-based)
+    sa: [
+      {
+        nom: "SA 3.1 — Geste complet avec consigne de continuité",
+        seances: "Séances 9-10",
+        groupeA: {
+          sa: "SA 3.1 Geste complet continuité",
+          consigne: "Réaliser le geste complet. Consigne unique : ne jamais marquer d'arrêt.",
+          critere: "Un pair ne perçoit aucun arrêt entre la translation et le jet."
+        },
+        groupeB: {
+          sa: "SA 3.1 Observation par paire",
+          consigne: "Un pair note la présence ou l'absence d'arrêt (la distance est secondaire).",
+          critere: "0 arrêt observé sur 3 essais consécutifs."
+        },
+        groupeC: {
+          sa: "SA 3.2 Geste complet + mesure",
+          consigne: "3 essais officiels notés, critères N2-3 et N2-4 évalués.",
+          critere: "Code C sur OBS-01, OBS-02 et OBS-03 en fin de bilan."
+        },
+        indicatif: "Vérifier que la liaison élan-frappe est fluide : pas d'interruption perceptible par l'observateur."
+      },
+      {
+        nom: "SA 3.2 — Geste complet avec rétablissement contrôlé et mesure",
+        seances: "Séances 11-12",
+        groupeA: {
+          sa: "SA 3.1 Continuité guidée",
+          consigne: "Réaliser le geste complet avec décompte sonore pour chaque phase.",
+          critere: "Les phases s'enchaînent dans l'ordre : translation > appui > extension > jet."
+        },
+        groupeB: {
+          sa: "SA 3.2 Mesure + codage",
+          consigne: "3 essais officiels : mesurer la distance, noter OBS-01, OBS-02, OBS-03.",
+          critere: "Au moins 2 observables codés B ou C sur les 3 essais."
+        },
+        groupeC: {
+          sa: "SA 3.2 Évaluation formative",
+          consigne: "Bilan final : codage OBS-01/02/03, mesure de distance, rétablissement.",
+          critere: "Rétablissement sans sortie de zone. Distance > 7m (Profil C Performance)."
+        },
+        indicatif: "(Dernière séance — évaluation formative ou tournoi officiel)"
+      }
+    ]
+  }
+];
+
+// SA recommandées par profil dominant de lacune
+function getSArecommandee(profil, lacuneObs) {
+  if (profil === 'A') {
+    if (lacuneObs === 1) return "SA 1.1 — Marche de profil avec engin au cou";
+    if (lacuneObs === 2) return "SA 2.1 — Extension depuis appui fixe";
+    return "SA 1.1 — Marche de profil";
+  }
+  if (profil === 'B') {
+    if (lacuneObs === 1) return "SA 1.2 — Pas chassés de profil guidés";
+    if (lacuneObs === 2) return "SA 2.2 — Translation + extension avec cible";
+    return "SA 3.1 — Geste complet avec continuité";
+  }
+  return "SA 3.2 — Geste complet avec rétablissement et mesure";
+}
+
+// Axe personnalisé par lacune
+function getAxePersonnalise(lacunes) {
+  if (!lacunes || lacunes.length === 0) return "Approfondissement — Liaison élan-frappe et rétablissement (AXE 3)";
+  var l = lacunes[0];
+  if (l.obs === 1) return "AXE 1 prioritaire — Construire la translation dynamique et fixer le poids au cou";
+  if (l.obs === 2) return "AXE 2 prioritaire — Organiser la poussée des jambes et orienter l'énergie verticalement";
+  if (l.obs === 0) return "AXE 3 prioritaire — Assurer la liaison élan-frappe et le rétablissement maîtrisé";
+  return "AXE 1 — Fondamentaux de la translation";
+}
+
+// ===================================================================
+// ÉTAT GLOBAL
+// ===================================================================
+var eleves = []; // données analysées
+var axesSelectionnes = [];
+var nbSeances = 8;
+
+// ===================================================================
+// FORMULAIRE MANUEL
+// ===================================================================
+function addRow(nom, v1, v2, v3, perf) {
+  var container = document.getElementById('rows-container');
+  var idx = container.children.length + 1;
+  var div = document.createElement('div');
+  div.className = 'student-row';
+  // L'input PERF est de type "number" avec step 0.01 (distances en mètres)
+  // data-obs="perf" permet à analyser() de le repérer sans ambiguïté
+  div.innerHTML =
+    '<span class="row-num">' + idx + '</span>' +
+    '<input type="text"   placeholder="Prénom"         value="' + (nom  || '') + '">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v1   !== undefined ? v1   : '') + '" data-obs="1">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v2   !== undefined ? v2   : '') + '" data-obs="2">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v3   !== undefined ? v3   : '') + '" data-obs="3">' +
+    '<input type="number" placeholder="ex: 7.45"       value="' + (perf !== undefined && perf !== '' ? perf : '') + '" ' +
+      'step="0.01" min="0" max="30" data-obs="perf" ' +
+      'oninput="colorerPerf(this)">' +
+    '<button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" ' +
+      'onclick="this.parentElement.remove();renumRows()">✕</button>';
+  container.appendChild(div);
+  // Appliquer la couleur immédiatement si valeur pré-remplie (import CSV)
+  if (perf !== undefined && perf !== '') {
+    colorerPerf(div.querySelector('input[data-obs="perf"]'));
+  }
+}
+
+function renumRows() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  rows.forEach(function(r, i) { r.querySelector('.row-num').textContent = i + 1; });
+}
+
+function clearForm() {
+  document.getElementById('rows-container').innerHTML = '';
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('btn-export').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  eleves = [];
+  for (var i = 0; i < 5; i++) addRow();
+}
+
+// Initialiser 5 lignes vides
+for (var i = 0; i < 5; i++) addRow();
+
+// ===================================================================
+// IMPORT CSV
+// ===================================================================
+function importCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  var lines = text.split(/\r?\n/);
+  var headerIdx = -1;
+
+  // ── P2 : parcourir tout le fichier pour trouver l'en-tête ──────────
+  // Reconnaît : "Nom et Prenom", "Nom_Eleve", "Prenom", "Nom" dans n'importe quelle ligne
+  for (var i = 0; i < lines.length; i++) {
+    var low = lines[i].toLowerCase();
+    if (low.indexOf('nom et prenom') > -1 ||
+        low.indexOf('nom_eleve')     > -1 ||
+        low.indexOf('prenom')        > -1 ||
+        low.indexOf('nom')           > -1) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  if (headerIdx < 0) {
+    showImportMsg("Erreur : aucune ligne d'en-tête trouvée. Colonnes attendues : Nom et Prenom ; TENUE ; TRANS ; EQUIL ; PERF", 'err');
+    return;
+  }
+
+  // ── Détecter le séparateur : '\t' prioritaire, puis ';', sinon ',' ──
+  var headerLine = lines[headerIdx];
+  var sep = headerLine.indexOf('\t') > -1 ? '\t'
+          : headerLine.indexOf(';')  > -1 ? ';'
+          : ',';
+
+  // ── Nettoyer et indexer les colonnes de l'en-tête ──────────────────
+  var headers = lines[headerIdx].split(sep).map(function(h) {
+    return h.trim().replace(/"/g, '').toLowerCase();
+  });
+
+  // Cherche le premier index dont l'en-tête contient l'un des motifs (ordre = priorité)
+  function findCol(patterns) {
+    for (var p = 0; p < patterns.length; p++) {
+      for (var h = 0; h < headers.length; h++) {
+        if (headers[h].indexOf(patterns[p].toLowerCase()) > -1) return h;
+      }
+    }
+    return -1;
+  }
+
+  // ── P3 : priorité codes métier → degrés lettres → colonnes numériques ──
+  // Format terrain ADP 2026 : "Nom et Prenom" | TENUE | TRANS | EQUIL | PERF
+  // Fallback ADP générique  : Nom_Eleve | OBS01 | OBS02 | OBS03
+  var nomCol  = findCol(['nom et prenom', 'nom_eleve', 'prenom', 'nom']);
+  var obs1Col = findCol(['tenue', 'obs01_tenue', 'obs-01', 'obs01', 'obs1']);
+  var obs2Col = findCol(['trans',  'obs02_trans', 'obs-02', 'obs02', 'obs2']);
+  var obs3Col = findCol(['equil',  'obs03_equil', 'obs-03', 'obs03', 'obs3']);
+  var perfCol = findCol(['perf']);   // colonne PERF (m) — stockée mais non utilisée dans la grille
+
+  // Avertissement si une colonne observable est absente
+  var manquantes = [];
+  if (obs1Col < 0) manquantes.push('TENUE');
+  if (obs2Col < 0) manquantes.push('TRANS');
+  if (obs3Col < 0) manquantes.push('EQUIL');
+  if (manquantes.length > 0) {
+    showImportMsg("Attention : colonne(s) introuvable(s) : " + manquantes.join(', ') + ". Vérifier l'en-tête.", 'warn');
+  }
+
+  // ── Nettoyage d'une valeur observable : retire les parenthèses, normalise la casse ──
+  // Règle 2 : (A) → A  |  (B) → B  |  (C) → C
+  function nettoyerObs(val) {
+    return val.trim().replace(/"/g, '').replace(/[()]/g, '').trim().toUpperCase();
+  }
+
+  // ── Nettoyage PERF : virgule → point pour parseFloat ──
+  // Règle 3 : "7,45" → "7.45"
+  function nettoyerPerf(val) {
+    return val.trim().replace(/"/g, '').replace(',', '.').trim();
+  }
+
+  // ── Cas particulier : première colonne = numéro de ligne (ex: "01") ──
+  // Si nomCol pointe sur une colonne qui contient uniquement des chiffres
+  // sur toutes les lignes données → la vraie colonne nom est la suivante.
+  function estColonneNumerique(colIdx) {
+    var count = 0, numeric = 0;
+    for (var j = headerIdx + 1; j < Math.min(headerIdx + 6, lines.length); j++) {
+      var l = lines[j].trim();
+      if (!l) continue;
+      count++;
+      var val = l.split(sep)[colIdx];
+      if (val !== undefined && /^\d+$/.test(val.trim())) numeric++;
+    }
+    return count > 0 && numeric === count;
+  }
+
+  // Si la colonne "nom" détectée ne contient que des chiffres,
+  // prendre la colonne suivante (ex: format "01;El Amrani Yassine;...")
+  if (nomCol >= 0 && estColonneNumerique(nomCol)) {
+    nomCol = nomCol + 1;
+  }
+
+  // ── Vider le formulaire et peupler avec les données lues ───────────
+  document.getElementById('rows-container').innerHTML = '';
+  var imported = 0;
+  var ignored  = 0;
+
+  for (var j = headerIdx + 1; j < lines.length; j++) {
+    var line = lines[j].trim();
+    if (!line) { ignored++; continue; }                              // ligne vide
+    if (line.toLowerCase().indexOf('bilan_classe') > -1) { ignored++; continue; } // ligne bilan
+
+    var cols = line.split(sep);
+    if (cols.length < 2) { ignored++; continue; }
+
+    // Règle 4 : colonne "Nom et Prenom" → champ Nom du tableau
+    var nom = nomCol >= 0 ? cols[nomCol] : cols[0];
+    nom = nom ? nom.trim().replace(/"/g, '') : '';
+    if (!nom) { ignored++; continue; }
+
+    // Règle 2 : nettoyage parenthèses sur TENUE / TRANS / EQUIL
+    var v1 = obs1Col >= 0 ? nettoyerObs(cols[obs1Col] || '') : '';
+    var v2 = obs2Col >= 0 ? nettoyerObs(cols[obs2Col] || '') : '';
+    var v3 = obs3Col >= 0 ? nettoyerObs(cols[obs3Col] || '') : '';
+
+    // Règle 3 : PERF — virgule → point pour parseFloat
+    var perf = perfCol >= 0 ? nettoyerPerf(cols[perfCol] || '') : '';
+
+    addRow(nom, v1, v2, v3, perf);
+    imported++;
+  }
+
+  var msg = imported + " élève(s) importé(s) avec succès.";
+  if (ignored > 0) msg += " " + ignored + " ligne(s) ignorée(s) (vides ou métadonnées).";
+  showImportMsg(msg, imported > 0 ? 'info' : 'err');
+}
+
+function showImportMsg(msg, type) {
+  document.getElementById('import-msg').innerHTML =
+    '<div class="alert alert-' + type + '">' + msg + '</div>';
+}
+
+// ===================================================================
+// ANALYSE
+// ===================================================================
+function analyser() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var donnees = [];
+  var erreurs = 0;
+
+  rows.forEach(function(row, idx) {
+    var nomInput  = row.querySelector('input[type=text]');
+    var obs1Input = row.querySelector('input[data-obs="1"]');
+    var obs2Input = row.querySelector('input[data-obs="2"]');
+    var obs3Input = row.querySelector('input[data-obs="3"]');
+    var perfInput = row.querySelector('input[data-obs="perf"]');
+
+    var nom = nomInput ? nomInput.value.trim() : '';
+    if (!nom) return; // lignes vides ignorées
+
+    var v1 = codeVersVal(obs1Input ? obs1Input.value : '');
+    var v2 = codeVersVal(obs2Input ? obs2Input.value : '');
+    var v3 = codeVersVal(obs3Input ? obs3Input.value : '');
+    var perf = perfInput ? perfInput.value.trim().replace(',', '.') : '';
+
+    if (obs1Input) obs1Input.classList.toggle('err', v1 === null);
+    if (obs2Input) obs2Input.classList.toggle('err', v2 === null);
+    if (obs3Input) obs3Input.classList.toggle('err', v3 === null);
+
+    if (v1 === null || v2 === null || v3 === null) { erreurs++; return; }
+
+    donnees.push({ nom: nom, obs: [v1, v2, v3], perf: perf });
+  });
+
+  if (erreurs > 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">' + erreurs + ' ligne(s) avec données invalides. Corriger avant d\'analyser.</div>';
+    return;
+  }
+  if (donnees.length === 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">Aucune donnée valide. Saisir au moins un élève.</div>';
+    return;
+  }
+
+  document.getElementById('form-err').innerHTML = '';
+
+  // Calculs par élève
+  donnees.forEach(function(e) {
+    var moy = (e.obs[0] + e.obs[1] + e.obs[2]) / 3;
+    e.moy = Math.round(moy * 10) / 10;
+    e.sur20 = Math.round(moy * 2 * 10) / 10;
+    e.profil = valVersProfil(moy);
+    e.profilDetail = e.obs.map(function(v) { return valVersProfil(v); }).join(' / ');
+
+    // Lacunes
+    var lacunes = [];
+    e.obs.forEach(function(v, i) {
+      if (valVersProfil(v) === 'A') lacunes.push({ obs: i, val: v });
+    });
+    lacunes.sort(function(a, b) { return a.val - b.val; });
+    e.lacunes = lacunes;
+
+    // Axe personnalisé
+    e.axe = getAxePersonnalise(lacunes);
+
+    // SA recommandée
+    var lacuneObs = lacunes.length > 0 ? lacunes[0].obs : -1;
+    e.sa = getSArecommandee(e.profil, lacuneObs);
+  });
+
+  // Classement
+  var sorted = donnees.slice().sort(function(a, b) { return b.moy - a.moy; });
+  var rang = 1;
+  sorted.forEach(function(e, i) {
+    if (i > 0 && sorted[i].moy < sorted[i-1].moy) rang = i + 1;
+    e.rang = rang;
+  });
+  donnees.forEach(function(e) {
+    var found = sorted.find(function(s) { return s.nom === e.nom && s.moy === e.moy; });
+    if (found) e.rang = found.rang;
+  });
+
+  eleves = donnees;
+  afficherResultats();
+}
+
+// ===================================================================
+// AFFICHAGE RÉSULTATS ÉTAPE 1
+// ===================================================================
+function afficherResultats() {
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+  var moyClasse = eleves.reduce(function(s, e) { return s + e.moy; }, 0) / n;
+  moyClasse = Math.round(moyClasse * 10) / 10;
+
+  // Stat cards
+  document.getElementById('stat-cards').innerHTML =
+    '<div class="stat-card A"><div class="val">' + nA + '</div><div class="lbl">Profil A (débutant)<br>' + Math.round(nA/n*100) + '%</div></div>' +
+    '<div class="stat-card B"><div class="val">' + nB + '</div><div class="lbl">Profil B (intermédiaire)<br>' + Math.round(nB/n*100) + '%</div></div>' +
+    '<div class="stat-card C"><div class="val">' + nC + '</div><div class="lbl">Profil C (avancé)<br>' + Math.round(nC/n*100) + '%</div></div>' +
+    '<div class="stat-card avg"><div class="val">' + moyClasse + '</div><div class="lbl">Moyenne classe /10<br>' + Math.round(moyClasse*2*10)/10 + ' / 20</div></div>';
+
+  // Analyse par observable
+  var obsHtml = '';
+  for (var i = 0; i < 3; i++) {
+    var moyObs = eleves.reduce(function(s, e) { return s + e.obs[i]; }, 0) / n;
+    moyObs = Math.round(moyObs * 10) / 10;
+    var cls, statut, sa;
+    if (moyObs < SEUIL_B) {
+      cls = 'lacune';
+      statut = '⚠️ Lacune collective — SA prioritaire';
+      sa = i === 1 ? "SA 1.1 — Marche de profil" : i === 2 ? "SA 2.1 — Extension appui fixe" : "SA 3.1 — Geste complet";
+    } else if (moyObs < SEUIL_C) {
+      cls = 'cours';
+      statut = '🔄 En cours — Consolider';
+      sa = i === 1 ? "SA 1.2 — Pas chassés guidés" : i === 2 ? "SA 2.2 — Translation + cible" : "SA 3.1 — Continuité";
+    } else {
+      cls = 'bon';
+      statut = '✅ Bon niveau — Approfondir';
+      sa = "SA 3.2 — Geste complet + mesure";
+    }
+    obsHtml +=
+      '<div class="obs-card ' + cls + '">' +
+        '<div class="obs-title">' + OBS_NOMS[i] + '</div>' +
+        '<div class="obs-val">' + moyObs + '/10</div>' +
+        '<div class="obs-status">' + statut + '</div>' +
+        '<div style="font-size:11px;color:var(--text2);margin-top:4px;">' + sa + '</div>' +
+      '</div>';
+  }
+  document.getElementById('obs-analysis').innerHTML = obsHtml;
+
+  // Décision dominante
+  var dominant, msg;
+  if (nA >= nB && nA >= nC) {
+    dominant = 'A'; msg = '🔴 Classe débutante — Priorité fondamentaux (translation + tenue du poids)';
+  } else if (nC >= nA && nC >= nB) {
+    dominant = 'C'; msg = '🟢 Classe avancée — Approfondissement et tutorat (liaison élan-frappe)';
+  } else {
+    dominant = 'B'; msg = '🟡 Classe intermédiaire — Différenciation A/B active recommandée';
+  }
+  document.getElementById('decision-box').innerHTML =
+    '<p><strong>Décision dominante automatique :</strong><br>' + msg + '</p>' +
+    '<p style="font-size:11px;color:var(--text2);margin-top:8px;">⚠️ Indicatif — La décision finale reste à l\'enseignant.</p>';
+
+  // Groupes de besoin
+  var groupesHtml = '<h3 style="margin-bottom:10px;">Groupes de besoin</h3>';
+  ['A','B','C'].forEach(function(p) {
+    var gEleves = eleves.filter(function(e) { return e.profil === p; });
+    if (gEleves.length === 0) return;
+    var saG = p === 'A' ? "SA 1.1 — Marche de profil avec engin au cou" :
+              p === 'B' ? "SA 1.2/2.2 — Différenciation selon observable lacunaire" :
+                          "SA 3.2 — Geste complet avec rétablissement et mesure";
+    groupesHtml +=
+      '<div class="groupe-need">' +
+        '<span class="badge badge-' + p + '">' + p + '</span>' +
+        '<div>' +
+          '<strong>' + gEleves.length + ' élève(s)</strong> — ' + saG +
+          '<div style="font-size:11px;color:var(--text2);">' +
+            gEleves.map(function(e) { return e.nom; }).join(', ') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('groupes-besoin').innerHTML = groupesHtml;
+
+  // Tableau individuel
+  var sorted = eleves.slice().sort(function(a, b) { return a.rang - b.rang; });
+  var tbody = '';
+  sorted.forEach(function(e) {
+    var lacStr = e.lacunes.length === 0 ? 'Aucune lacune identifiée' :
+      e.lacunes.map(function(l, i) {
+        return 'L' + (i+1) + ' — ' + OBS_NOMS[l.obs] + ' : ' + l.val + '/10';
+      }).join('<br>');
+    tbody +=
+      '<tr class="prof-' + e.profil + '">' +
+        '<td>' + e.rang + '</td>' +
+        '<td><strong>' + e.nom + '</strong></td>' +
+        '<td>' + e.obs[0] + '</td>' +
+        '<td>' + e.obs[1] + '</td>' +
+        '<td>' + e.obs[2] + '</td>' +
+        '<td><strong>' + (e.perf !== '' && e.perf !== undefined ? e.perf + ' m' : '—') + '</strong></td>' +
+        '<td><strong>' + e.moy + '</strong></td>' +
+        '<td>' + e.sur20 + '</td>' +
+        '<td><span class="badge badge-' + e.profil + '">' + e.profil + '</span></td>' +
+        '<td><small>' + e.profilDetail + '</small></td>' +
+        '<td><small>' + lacStr + '</small></td>' +
+        '<td><small>' + e.axe.substring(0, 60) + '...</small></td>' +
+        '<td><small>' + e.sa.substring(0, 50) + '...</small></td>' +
+      '</tr>';
+  });
+  document.getElementById('tbody-individuel').innerHTML = tbody;
+
+  document.getElementById('results1').style.display = 'block';
+  document.getElementById('btn-export').style.display = 'inline-flex';
+}
+
+// ===================================================================
+// NAVIGATION ÉTAPES
+// ===================================================================
+function goStep(n) {
+  if (n === 2) buildAxes();
+  if (n === 3) { updateSlider(); }
+  if (n === 4) buildPlanning();
+
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('step' + n).classList.add('active');
+
+  document.querySelectorAll('.step-item').forEach(function(s, i) {
+    s.classList.remove('active', 'done');
+    if (i + 1 === n) s.classList.add('active');
+    else if (i + 1 < n) s.classList.add('done');
+  });
+
+  // Reset étapes suivantes si retour
+  if (n <= 2) { axesSelectionnes = []; }
+  if (n <= 3) { nbSeances = 8; document.getElementById('slider-seances').value = 8; }
+
+  window.scrollTo(0, 0);
+}
+
+// ===================================================================
+// ÉTAPE 2 — AXES
+// ===================================================================
+function buildAxes() {
+  var n = eleves.length;
+  // Calculer pertinence : % élèves avec lacune sur l'observable lié à chaque axe
+  var axesData = AXES.map(function(axe) {
+    var lacPct = Math.round(
+      eleves.filter(function(e) { return valVersProfil(e.obs[axe.obs]) === 'A'; }).length / n * 100
+    );
+    var moyObs = Math.round(eleves.reduce(function(s, e) { return s + e.obs[axe.obs]; }, 0) / n * 10) / 10;
+    return { axe: axe, pct: lacPct, moy: moyObs };
+  });
+  axesData.sort(function(a, b) { return b.pct - a.pct; });
+
+  var html = '';
+  axesData.forEach(function(d, idx) {
+    var prioriteClass = d.axe.priorite === 'HAUTE' ? 'var(--red)' :
+                        d.axe.priorite === 'MOYENNE' ? 'var(--orange)' : 'var(--green)';
+    html +=
+      '<div class="axe-item" id="axe-item-' + d.axe.id + '" onclick="toggleAxe(' + d.axe.id + ')">' +
+        '<input type="checkbox" id="axe-chk-' + d.axe.id + '" onchange="updateAxeSel()" onclick="event.stopPropagation()">' +
+        '<div style="flex:1;">' +
+          '<div style="float:right;font-size:20px;font-weight:800;color:var(--accent2);">' + d.pct + '%</div>' +
+          '<div class="axe-title">' + d.axe.titre + '</div>' +
+          '<div class="axe-meta">' +
+            'Priorité : <span style="color:' + prioriteClass + ';font-weight:700;">' + d.axe.priorite + '</span> · ' +
+            'Observable lié : ' + OBS_NOMS[d.axe.obs] + ' · Moy. classe : ' + d.moy + '/10<br>' +
+            'SA associées : ' + d.axe.sa.map(function(s) { return s.nom.split(' — ')[0]; }).join(' · ') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('axes-list').innerHTML = html;
+  axesSelectionnes = [];
+  updateAxeSel();
+}
+
+function toggleAxe(id) {
+  var chk = document.getElementById('axe-chk-' + id);
+  chk.checked = !chk.checked;
+  updateAxeSel();
+}
+
+function updateAxeSel() {
+  axesSelectionnes = [];
+  AXES.forEach(function(a) {
+    var chk = document.getElementById('axe-chk-' + a.id);
+    if (chk && chk.checked) axesSelectionnes.push(a.id);
+  });
+
+  // Bloquer au-delà de 4
+  if (axesSelectionnes.length >= 4) {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk && !chk.checked) {
+        chk.disabled = true;
+        if (item) item.style.opacity = '0.5';
+      }
+    });
+    document.getElementById('axes-msg').innerHTML =
+      '<div class="alert alert-warn">Maximum 4 axes atteint.</div>';
+  } else {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk) { chk.disabled = false; }
+      if (item) item.style.opacity = '1';
+    });
+    document.getElementById('axes-msg').innerHTML = '';
+  }
+
+  // Mettre à jour visuels
+  AXES.forEach(function(a) {
+    var item = document.getElementById('axe-item-' + a.id);
+    var chk = document.getElementById('axe-chk-' + a.id);
+    if (item && chk) item.classList.toggle('selected', chk.checked);
+  });
+
+  var btn = document.getElementById('btn-step3');
+  btn.disabled = axesSelectionnes.length < 3;
+  if (axesSelectionnes.length < 3) {
+    document.getElementById('axes-msg').innerHTML =
+      '<div class="alert alert-info">Sélectionnez au moins 3 axes pour continuer.</div>';
+  }
+}
+
+// ===================================================================
+// ÉTAPE 3 — SLIDER
+// ===================================================================
+// Distribution tableau (axesCount × séances)
+var DISTRIBUTION = {
+  3: { 6: [2,2,2], 7: [2,2,3], 8: [3,2,3], 9: [3,3,3], 10: [3,4,3] },
+  4: { 6: [1,2,2,1], 7: [2,2,2,1], 8: [2,2,2,2], 9: [2,3,2,2], 10: [3,2,3,2] }
+};
+
+function updateSlider() {
+  nbSeances = parseInt(document.getElementById('slider-seances').value);
+  var nAxes = axesSelectionnes.length;
+  if (nAxes < 3) nAxes = 3;
+  if (nAxes > 4) nAxes = 4;
+
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) {
+    return AXES.find(function(a) { return a.id === id; });
+  }).filter(Boolean);
+
+  var html = '<strong>Cycle de ' + nbSeances + ' séances · ' + nAxes + ' séquences</strong><br>';
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    html += '<div style="margin-top:8px;padding:6px 10px;background:var(--surface);border-radius:6px;border-left:3px solid var(--accent);">' +
+      'Séquence ' + (i+1) + ' (' + ns + ' séance' + (ns>1?'s':'') + ') — ' +
+      (axe ? axe.titre.substring(0, 70) + '...' : '') +
+      '</div>';
+  });
+
+  document.getElementById('slider-display').innerHTML = html;
+}
+
+// ===================================================================
+// ÉTAPE 4 — PLANIFICATION
+// ===================================================================
+function buildPlanning() {
+  var nAxes = axesSelectionnes.length;
+  if (nAxes < 3) nAxes = 3;
+  if (nAxes > 4) nAxes = 4;
+
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) {
+    return AXES.find(function(a) { return a.id === id; });
+  }).filter(Boolean);
+
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+
+  var html = '';
+  var seanceGlobale = 0;
+
+  dist.forEach(function(nbS, seqIdx) {
+    var axe = axesObjs[seqIdx] || axesObjs[axesObjs.length - 1];
+    var seqNum = seqIdx + 1;
+    var objectif = seqIdx === 0 ? "Fondamentaux — tous groupes" :
+                   seqIdx === dist.length - 1 ? "Consolidation et évaluation formative" :
+                   "Différenciation A/B/C active";
+
+    html += '<div class="seq-block">' +
+      '<div class="seq-header">' +
+        'Séquence ' + seqNum + ' — ' + axe.titre.substring(0, 60) + '...' +
+        '<span style="font-size:11px;font-weight:400;">' + nbS + ' séance(s)</span>' +
+      '</div>' +
+      '<table class="seq-table">' +
+        '<tr>' +
+          '<th>Séance</th><th>Axe dominant</th><th>Objectif</th>' +
+          '<th style="color:var(--red);">Groupe A — Débutants</th>' +
+          '<th style="color:var(--orange);">Groupe B — Intermédiaires</th>' +
+          '<th style="color:var(--green);">Groupe C — Avancés</th>' +
+        '</tr>';
+
+    for (var s = 0; s < nbS; s++) {
+      seanceGlobale++;
+      var saIdx = Math.min(s, axe.sa.length - 1);
+      var saData = axe.sa[saIdx];
+      var isLast = (s === nbS - 1) && (seqIdx === dist.length - 1);
+
+      html += '<tr>' +
+        '<td style="white-space:nowrap;"><strong>S' + seanceGlobale + '</strong></td>' +
+        '<td style="font-size:11px;">' + axe.titre.split(' — ')[0] + '</td>' +
+        '<td style="font-size:11px;">' + objectif + '</td>' +
+        '<td class="grp-A">' +
+          '<div class="sa-name">' + saData.groupeA.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeA.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeA.critere + '</div>' +
+        '</td>' +
+        '<td class="grp-B">' +
+          '<div class="sa-name">' + saData.groupeB.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeB.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeB.critere + '</div>' +
+        '</td>' +
+        '<td class="grp-C">' +
+          '<div class="sa-name">' + saData.groupeC.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeC.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeC.critere + '</div>' +
+        '</td>' +
+      '</tr>';
+
+      // Indicatif de passage (sauf dernière séance du cycle)
+      if (!isLast && saData.indicatif) {
+        html += '<tr><td colspan="6">' +
+          '<div class="indicatif">📋 À observer avant la séance suivante — ' + saData.indicatif + '<br>' +
+          '<em>(Indicatif — décision de progression : vous)</em></div>' +
+          '</td></tr>';
+      }
+    }
+
+    html += '</table></div>';
+  });
+
+  document.getElementById('planning-content').innerHTML = html;
+
+  // Résumé du cycle
+  var profilDominant = nA >= nB && nA >= nC ? 'A' : nC >= nA && nC >= nB ? 'C' : 'B';
+  var profilN = profilDominant === 'A' ? nA : profilDominant === 'B' ? nB : nC;
+  var seqReval = Math.ceil(dist.length / 2);
+
+  var summaryHtml =
+    '<div class="card" style="margin-top:20px;">' +
+      '<h2>📋 Résumé du cycle</h2>' +
+      '<table class="cycle-summary">' +
+        '<tr><th>Séquence</th><th>Axes travaillés</th><th>Nb séances</th><th>Profil dominant ciblé</th></tr>';
+
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    var cible = i === 0 ? 'Tous' : i === dist.length - 1 ? 'B → C' : 'A + B';
+    summaryHtml += '<tr><td>Séquence ' + (i+1) + '</td><td>' +
+      axe.titre.substring(0, 50) + '...</td><td>' + ns + '</td><td>' + cible + '</td></tr>';
+  });
+
+  summaryHtml += '</table>' +
+    '<div class="reco-box">' +
+      'Ce cycle de <strong>' + nbSeances + ' séances</strong> cible <strong>' + nAxes + ' axes prioritaires</strong>. ' +
+      'Profil le plus concerné : <strong>' + profilDominant + ' (' + profilN + ' élèves · ' + Math.round(profilN/n*100) + '%)</strong>. ' +
+      'Réévaluer après la séquence <strong>' + seqReval + '</strong> avec une nouvelle collecte terrain.' +
+      '<br><br><em>⚠️ L\'outil ne produit pas de note. La décision finale reste toujours à l\'enseignant.</em>' +
+    '</div>' +
+    '</div>';
+
+  document.getElementById('cycle-summary').innerHTML = summaryHtml;
+}
+
+// ===================================================================
+// EXPORT CSV
+// ===================================================================
+function exportCSV() {
+  if (eleves.length === 0) { alert("Aucune donnée à exporter. Lancez d'abord l'analyse."); return; }
+
+  var BOM = '\uFEFF';
+  var cols = ['Prénom','PERF (m)','Code OBS-01','OBS-01','Code OBS-02','OBS-02','Code OBS-03','OBS-03',
+               'Moyenne','Sur 20','Rang','Profil global','Profil détaillé','Lacune 1','SA recommandée'];
+
+  function toCode(v) {
+    if (v >= SEUIL_C) return 'C';
+    if (v >= SEUIL_B) return 'B';
+    return 'A';
+  }
+
+  var rows = [cols.join(';')];
+  eleves.forEach(function(e) {
+    var l1 = e.lacunes.length > 0 ? OBS_NOMS[e.lacunes[0].obs] + ' : ' + e.lacunes[0].val + '/10' : 'Aucune';
+    rows.push([
+      e.nom,
+      e.perf || '',
+      toCode(e.obs[0]), e.obs[0],
+      toCode(e.obs[1]), e.obs[1],
+      toCode(e.obs[2]), e.obs[2],
+      e.moy, e.sur20, e.rang,
+      e.profil, e.profilDetail,
+      l1, e.sa
+    ].join(';'));
+  });
+
+  var d = new Date();
+  var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var blob = new Blob([BOM + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'outil_v0_POIDS_DI-POI_' + dateStr + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===================================================================
+// INIT
+// ===================================================================
+
+// Coloration visuelle de l'input PERF selon seuils de performance
+function colorerPerf(input) {
+  var v = parseFloat(input.value);
+  input.classList.remove('perf-low', 'perf-ok', 'perf-high');
+  if (isNaN(v) || input.value === '') return;
+  if (v < 5)       input.classList.add('perf-low');
+  else if (v < 7.5) input.classList.add('perf-ok');
+  else              input.classList.add('perf-high');
+}
+
+updateSlider(); // initialiser le slider display
+
+</script>
+</body>
+</html>

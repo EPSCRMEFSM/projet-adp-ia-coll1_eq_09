@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Outil ADP 2026 — Lancer de Poids DI-POI</title>
+<style>
+/* === RESET & BASE === */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1117;--bg2:#181c27;--bg3:#1e2336;--bg4:#252b40;
+  --border:#2e3550;--border2:#3d4a6b;
+  --text:#e8ecf4;--text2:#9aa3bf;--text3:#6270a0;
+  --blue:#4a80f5;--blue2:#2d5cdb;--blue-bg:#1a2444;
+  --green:#3dd68c;--green-bg:#0f2e1e;--green2:#27a065;
+  --amber:#f5a623;--amber-bg:#2e1f08;--amber2:#b87d1a;
+  --red:#f55a5a;--red-bg:#2e0f0f;--red2:#b84040;
+  --purple:#9b6af5;--purple-bg:#1e1440;
+  --radius:8px;--radius2:12px;--radius3:16px;
+  --font:'IBM Plex Mono',monospace;
+  --font2:'IBM Plex Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font2);font-size:14px;line-height:1.6;min-height:100vh;}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+/* === HEADER === */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;}
+.app-logo{width:36px;height:36px;background:var(--blue);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-family:var(--font);font-size:13px;font-weight:600;color:#fff;flex-shrink:0;}
+.app-title{font-family:var(--font);font-size:13px;font-weight:500;color:var(--text);}
+.app-sub{font-size:11px;color:var(--text3);font-family:var(--font);}
+.header-right{margin-left:auto;display:flex;gap:8px;}
+
+/* === STEPPER === */
+.stepper{display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto;}
+.step-item{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
+.step-item.active{border-bottom-color:var(--blue);color:var(--blue);}
+.step-item.done{color:var(--green);}
+.step-item.locked{color:var(--text3);cursor:not-allowed;}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--font);background:var(--bg3);border:1px solid var(--border);}
+.step-item.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff;}
+.step-item.done .step-num{background:var(--green);border-color:var(--green);color:#fff;}
+.step-label{font-size:12px;font-weight:500;}
+.step-arrow{color:var(--border2);padding:0 4px;font-size:10px;}
+
+/* === MAIN === */
+.main{max-width:1100px;margin:0 auto;padding:24px;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* === CARDS === */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;margin-bottom:16px;}
+.card-title{font-family:var(--font);font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:3px;height:14px;background:var(--blue);border-radius:2px;display:inline-block;}
+
+/* === BADGES === */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--font);}
+.badge-A{background:var(--red-bg);color:var(--red);border:1px solid var(--red2);}
+.badge-B{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber2);}
+.badge-C{background:var(--green-bg);color:var(--green);border:1px solid var(--green2);}
+.badge-info{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue2);}
+
+/* === FORMS === */
+.form-row{display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);}
+.form-row:last-child{border-bottom:none;}
+.form-row label{font-size:12px;color:var(--text2);}
+input[type=text],input[type=number]{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text);padding:6px 10px;font-size:13px;font-family:var(--font2);width:100%;
+  transition:border-color .2s;
+}
+input[type=text]:focus,input[type=number]:focus{outline:none;border-color:var(--blue);}
+input[type=text].error,input[type=number].error{border-color:var(--red);}
+.form-header{display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:6px 0 8px;border-bottom:1px solid var(--border2);}
+.form-header span{font-family:var(--font);font-size:11px;color:var(--text3);text-align:center;}
+.form-header span:first-child{text-align:left;}
+
+/* === BUTTONS === */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-family:var(--font2);cursor:pointer;transition:all .15s;}
+.btn:hover{background:var(--bg3);border-color:var(--blue);}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue2);}
+.btn-success{background:var(--green2);border-color:var(--green2);color:#fff;}
+.btn-success:hover{background:var(--green);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+/* === TABLE === */
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--bg3);color:var(--text3);font-family:var(--font);font-weight:500;font-size:11px;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:7px 10px;border-bottom:1px solid var(--bg3);color:var(--text2);vertical-align:middle;}
+tr.row-A td{background:#1a0f0f;}
+tr.row-B td{background:#1c1500;}
+tr.row-C td{background:#0d1f14;}
+tr:hover td{filter:brightness(1.1);}
+
+/* === STAT CARDS === */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.stat-val{font-family:var(--font);font-size:26px;font-weight:600;line-height:1;}
+.stat-label{font-size:11px;color:var(--text3);margin-top:4px;}
+.stat-card.card-A .stat-val{color:var(--red);}
+.stat-card.card-B .stat-val{color:var(--amber);}
+.stat-card.card-C .stat-val{color:var(--green);}
+.stat-card.card-avg .stat-val{color:var(--blue);}
+
+/* === OBS BARS === */
+.obs-bar-wrap{margin-bottom:10px;}
+.obs-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.obs-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.obs-bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+.fill-A{background:var(--red);}
+.fill-B{background:var(--amber);}
+.fill-C{background:var(--green);}
+
+/* === AXE CARDS (step 2) === */
+.axe-card-sel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;display:flex;gap:12px;align-items:flex-start;}
+.axe-card-sel:hover{border-color:var(--blue);}
+.axe-card-sel.selected{border-color:var(--blue);background:var(--blue-bg);}
+.axe-card-sel.selected .axe-sel-chk{background:var(--blue);border-color:var(--blue);}
+.axe-sel-chk{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:all .15s;}
+.axe-sel-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.axe-sel-meta{font-size:11px;color:var(--text3);}
+.axe-pert{font-family:var(--font);font-size:11px;color:var(--amber);margin-top:4px;}
+
+/* === SLIDER === */
+.slider-wrap{margin:20px 0;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid var(--bg);}
+.slider-val{font-family:var(--font);font-size:32px;font-weight:600;color:var(--blue);text-align:center;margin:12px 0;}
+.slider-labels{display:flex;justify-content:space-between;font-family:var(--font);font-size:10px;color:var(--text3);}
+.distrib-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:12px;}
+.distrib-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--bg4);}
+.distrib-row:last-child{border-bottom:none;}
+.distrib-seq{font-family:var(--font);font-size:11px;color:var(--text3);width:90px;flex-shrink:0;}
+.distrib-bar-wrap{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.distrib-bar{height:100%;border-radius:3px;background:var(--blue);transition:width .3s;}
+.distrib-info{font-size:11px;color:var(--text2);width:200px;flex-shrink:0;}
+
+/* === PLANIF === */
+.seq-block{border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;margin-bottom:20px;}
+.seq-header{background:var(--bg3);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.seq-num{font-family:var(--font);font-size:11px;color:var(--text3);}
+.seq-title{font-size:13px;font-weight:600;color:var(--text);}
+.seq-badge{margin-left:auto;}
+.seance-row{border-bottom:1px solid var(--bg3);display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr;gap:0;}
+.seance-row:last-child{border-bottom:none;}
+.seance-cell{padding:10px 12px;border-right:1px solid var(--bg3);font-size:12px;}
+.seance-cell:last-child{border-right:none;}
+.seance-num{font-family:var(--font);font-size:13px;font-weight:600;color:var(--text3);display:flex;align-items:center;justify-content:center;}
+.seance-cell-title{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;font-family:var(--font);}
+.seance-cell-body{font-size:12px;color:var(--text2);line-height:1.5;}
+.seance-cell-crit{font-size:11px;color:var(--text3);margin-top:4px;padding-top:4px;border-top:1px dashed var(--bg4);}
+.indicatif-row{background:var(--blue-bg);border-left:3px solid var(--blue);padding:8px 12px;font-size:11px;color:var(--text2);display:grid;grid-template-columns:50px 1fr;}
+.indicatif-label{font-family:var(--font);font-size:10px;color:var(--blue);}
+.seance-head{background:var(--bg4);font-family:var(--font);font-size:10px;color:var(--text3);display:grid;grid-template-columns:50px 1fr 1fr 1fr 1fr;}
+.seance-head span{padding:6px 12px;border-right:1px solid var(--bg3);}
+.seance-head span:last-child{border-right:none;}
+
+/* === SUMMARY === */
+.summary-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;}
+.summary-table th{background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--font);font-size:10px;color:var(--text3);border:1px solid var(--border);}
+.summary-table td{padding:8px 12px;border:1px solid var(--bg3);color:var(--text2);}
+.reco-box{background:var(--purple-bg);border:1px solid var(--purple);border-radius:var(--radius);padding:14px;font-size:12px;color:var(--text2);line-height:1.7;}
+.reco-box strong{color:var(--purple);}
+
+/* === IMPORT === */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--blue);background:var(--blue-bg);}
+.drop-zone p{font-size:13px;color:var(--text3);}
+.drop-zone strong{color:var(--text2);}
+.error-msg{color:var(--red);font-size:12px;margin-top:6px;}
+.success-msg{color:var(--green);font-size:12px;margin-top:6px;}
+
+/* === MISC === */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:12px;margin-bottom:12px;}
+.alert-warn{background:var(--amber-bg);border:1px solid var(--amber2);color:var(--amber);}
+.alert-info{background:var(--blue-bg);border:1px solid var(--blue2);color:var(--blue);}
+.alert-ok{background:var(--green-bg);border:1px solid var(--green2);color:var(--green);}
+.decision-box{background:var(--bg3);border-left:4px solid var(--blue);border-radius:0 var(--radius) var(--radius) 0;padding:12px 16px;font-size:13px;margin:12px 0;}
+
+/* === PRINT === */
+@media print{
+  .app-header,.stepper,.btn-row,.btn,.drop-zone,input[type=range],.step-item{display:none!important;}
+  .section{display:block!important;}
+  body{background:#fff;color:#000;}
+  .card,.seq-block{border:1px solid #ccc;}
+  .tbl-wrap table td,.tbl-wrap table th{color:#000;background:#fff;}
+}
+
+/* === RESPONSIVE === */
+@media(max-width:700px){
+  .main{padding:12px;}
+  .form-row{grid-template-columns:1fr 64px 64px 64px;}
+  .seance-row{grid-template-columns:36px 1fr;}
+  .seance-cell:nth-child(n+3){display:none;}
+  .seance-head span:nth-child(n+3){display:none;}
+  .seance-head{grid-template-columns:36px 1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">EPS</div>
+  <div>
+    <div class="app-title">Outil ADP 2026 — Lancer de Poids · DI-POI</div>
+    <div class="app-sub">CRMEF Inezgane · Section EPS · BOUARGANE · Lycée EL MOUTANABI · 2nde</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-sm" onclick="window.print()">🖨 Imprimer</button>
+  </div>
+</header>
+
+<nav class="stepper" id="stepper">
+  <div class="step-item active" id="step-tab-1" onclick="gotoStep(1)">
+    <span class="step-num">1</span>
+    <span class="step-label">Diagnostic</span>
+  </div>
+  <span class="step-arrow">›</span>
+  <div class="step-item locked" id="step-tab-2" onclick="gotoStep(2)">
+    <span class="step-num">2</span>
+    <span class="step-label">Axes prioritaires</span>
+  </div>
+  <span class="step-arrow">›</span>
+  <div class="step-item locked" id="step-tab-3" onclick="gotoStep(3)">
+    <span class="step-num">3</span>
+    <span class="step-label">Paramétrage</span>
+  </div>
+  <span class="step-arrow">›</span>
+  <div class="step-item locked" id="step-tab-4" onclick="gotoStep(4)">
+    <span class="step-num">4</span>
+    <span class="step-label">Planification</span>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══════════════════════════════ ÉTAPE 1 ═══════════════════════════════ -->
+<div class="section active" id="section-1">
+
+  <div class="card">
+    <div class="card-title">Import CSV terrain (format ADP 2026)</div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <p><strong>Glisser-déposer le fichier CSV ici</strong><br>ou cliquer pour parcourir</p>
+      <p style="font-size:11px;color:var(--text3);margin-top:6px;">Formats reconnus : OBS01_[nom] · OBS01_Degre · OBS1 numérique</p>
+    </div>
+    <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSV(event)"/>
+    <div id="csvMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Saisie manuelle — 30 élèves</div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Saisir les codes observables : A = Degré A · B = Degré B · C = Degré C (ou valeur 0-10)</p>
+    <div class="form-header">
+      <span>Prénom</span>
+      <span style="text-align:center">OBS-01<br><span style="color:var(--text3);font-size:10px">Tenue</span></span>
+      <span style="text-align:center">OBS-02<br><span style="color:var(--text3);font-size:10px">Translation</span></span>
+      <span style="text-align:center">OBS-03<br><span style="color:var(--text3);font-size:10px">Équilibre</span></span>
+    </div>
+    <div id="formRows"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="analyzeClass()">▶ Analyser la classe</button>
+      <button class="btn" onclick="clearForm()">✕ Réinitialiser</button>
+    </div>
+  </div>
+
+  <div id="results1" style="display:none">
+    <div class="card">
+      <div class="card-title">Bilan de classe</div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div id="obsBars"></div>
+      <div id="decisionBox"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tableau individuel</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rang</th><th>Prénom</th>
+              <th>OBS-01</th><th>OBS-02</th><th>OBS-03</th>
+              <th>Moy./10</th><th>/20</th><th>Profil</th>
+              <th>Détail</th><th>Lacune L1</th><th>Axe prioritaire</th><th>SA</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="goToStep2()">→ Passer à l'étape 2 — Axes prioritaires</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ÉTAPE 2 ═══════════════════════════════ -->
+<div class="section" id="section-2">
+  <div class="card">
+    <div class="card-title">Sélection des axes prioritaires</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Sélectionner 3 ou 4 axes. L'outil les classe par pertinence selon les lacunes réelles de la classe. La décision finale reste à l'enseignant.</p>
+    <div id="axeCards"></div>
+    <div id="axeMsg" class="error-msg" style="display:none"></div>
+    <div class="btn-row">
+      <button class="btn btn-success" id="btnStep3" onclick="goToStep3()" disabled>→ Paramétrer le cycle — Étape 3</button>
+      <button class="btn" onclick="gotoStep(1)">← Retour étape 1</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ÉTAPE 3 ═══════════════════════════════ -->
+<div class="section" id="section-3">
+  <div class="card">
+    <div class="card-title">Paramétrage du cycle</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Déplacer le curseur pour choisir le nombre de séances. La distribution est calculée automatiquement.</p>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <input type="range" id="sliderSeances" min="6" max="10" value="8" step="1" oninput="updateSlider()"/>
+      <div class="slider-val" id="sliderVal">8 séances</div>
+    </div>
+    <div class="distrib-preview" id="distribPreview"></div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="goToStep4()">→ Générer la planification — Étape 4</button>
+      <button class="btn" onclick="gotoStep(2)">← Retour étape 2</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ÉTAPE 4 ═══════════════════════════════ -->
+<div class="section" id="section-4">
+  <div id="planifContent"></div>
+  <div class="btn-row">
+    <button class="btn" onclick="gotoStep(3)">← Retour étape 3</button>
+    <button class="btn btn-sm" onclick="window.print()">🖨 Imprimer la planification</button>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════ DONNÉES RÉFÉRENTIEL ═══════════════════
+
+var REF = {
+  aps: "Lancer de Poids",
+  code: "DI-POI",
+  obs: [
+    {
+      id: "OBS-01", nom: "Tenue du poids",
+      A: {label: "Poids éloigné du cou, non contrôlé", score: 3},
+      B: {label: "Poids proche du cou", score: 6},
+      C: {label: "Poids calé cou-épaule, stable", score: 9}
+    },
+    {
+      id: "OBS-02", nom: "Translation / Élan",
+      A: {label: "Pas de translation, bras seul", score: 3},
+      B: {label: "Translation partielle, appuis irréguliers", score: 6},
+      C: {label: "Translation dynamique, appuis coordonnés", score: 9}
+    },
+    {
+      id: "OBS-03", nom: "Équilibre / Explosivité",
+      A: {label: "Déséquilibre, chute ou sortie", score: 3},
+      B: {label: "Équilibre moyen, poussée limitée", score: 6},
+      C: {label: "Rétablissement maîtrisé, extension totale", score: 9}
+    }
+  ],
+  seuilC: 8, seuilB: 5,
+  axes: [
+    {
+      id: "A1", obs: 1, priorite: "haute",
+      titre: "Construction de la translation dynamique et fixation du poids au cou",
+      lacune: "OBS-02 / N1 — Pas de translation, bras seul",
+      capacites: "N1-2 · N1-4 · N1-5",
+      debloques: "N2-1 · N2-2 · N2-3",
+      sa: [
+        {id:"SA-1.1", nom:"Marche de profil avec engin au cou", seances:"S1-S2",
+         desc:"Déplacement latéral en maintenant le poids contre le cou-épaule. Pas de jet.",
+         consigne:"Garder le poids calé au cou pendant tout le déplacement.",
+         critere:"Le poids ne décolle pas du segment cervical durant 3 déplacements sur 3."},
+        {id:"SA-1.2", nom:"Pas chassés de profil avec enchaînement guidé", seances:"S3-S4",
+         desc:"Deux pas chassés dans le couloir, poids au cou, arrêt appui arrière avant jet.",
+         consigne:"Ne pas s'arrêter entre les pas chassés et le jet.",
+         critere:"Absence de temps mort entre translation et impulsion."},
+        {id:"SA-1.3", nom:"Translation complète depuis la ligne arrière", seances:"S5-S6",
+         desc:"Enchaîner translation (2-3 appuis) et jet depuis la zone arrière.",
+         consigne:"Arriver en appui arrière avec le poids encore calé au cou.",
+         critere:"OBS-02 noté B ou C à l'issue des essais."}
+      ]
+    },
+    {
+      id: "A2", obs: 1, priorite: "haute",
+      titre: "Placement de profil et enchaînement des phases (N1-2 · N1-5)",
+      lacune: "OBS-02 / N1 — Absence de placement de profil",
+      capacites: "N1-2 · N1-5",
+      debloques: "N2-1 · N2-3",
+      sa: [
+        {id:"SA-1.2", nom:"Pas chassés de profil avec enchaînement guidé", seances:"S3-S4",
+         desc:"Travail spécifique du profil épaules perpendiculaires à la direction du jet.",
+         consigne:"Épaule arrière pointée vers le fond du cercle.",
+         critere:"L'élève est de profil à l'issue de chaque translation."}
+      ]
+    },
+    {
+      id: "A3", obs: 2, priorite: "moyenne",
+      titre: "Organisation de la poussée des jambes et orientation de l'énergie en fin de jet",
+      lacune: "OBS-03 / N1 — Déséquilibre, énergie non réorientée verticalement",
+      capacites: "N1-1 · N1-3",
+      debloques: "N2-2 · N2-4",
+      sa: [
+        {id:"SA-2.1", nom:"Extension complète depuis appui fixe", seances:"S5-S6",
+         desc:"Sans translation, extension jambes-tronc-bras en poussée continue depuis position basse.",
+         consigne:"Sentir le décollement du talon arrière avant de relâcher le bras.",
+         critere:"Jet orienté vers l'avant-haut à 40-45°, talon décollé visible."},
+        {id:"SA-2.2", nom:"Translation et extension avec cible haute", seances:"S7-S8",
+         desc:"Corde à 45° devant la zone de jet. Enchaîner translation (acquise) et extension vers la cible.",
+         consigne:"Pousser le poids AU-DESSUS de la corde.",
+         critere:"Au moins 2 jets sur 3 passent au-dessus de la corde."}
+      ]
+    },
+    {
+      id: "A4", obs: 2, priorite: "moyenne",
+      titre: "Chemin de lancement long et extension totale (N2-2)",
+      lacune: "OBS-03 / N2 — Équilibre moyen, poussée incomplète",
+      capacites: "N1-1 · N2-2",
+      debloques: "N2-2 · N2-4",
+      sa: [
+        {id:"SA-2.2", nom:"Translation et extension avec cible haute", seances:"S7-S8",
+         desc:"Travail du chemin le plus long possible entre position basse et lâcher.",
+         consigne:"Garder le poids bas le plus longtemps possible pendant la translation.",
+         critere:"La distance augmente de séance en séance (mesure relevée)."}
+      ]
+    },
+    {
+      id: "A5", obs: 0, priorite: "consolidation",
+      titre: "Liaison élan-frappe sans rupture de vitesse (N2-3)",
+      lacune: "OBS-01 / N2 — Liaison incomplète entre phases",
+      capacites: "N2-3 · N1-4 · N1-5",
+      debloques: "N2-3",
+      sa: [
+        {id:"SA-3.1", nom:"Geste complet avec consigne de continuité", seances:"S9-S10",
+         desc:"Geste complet translation + extension + jet. Consigne unique : aucun arrêt.",
+         consigne:"Ne jamais marquer de temps mort entre les phases.",
+         critere:"L'observateur pair note 0 arrêt sur 3 essais consécutifs."}
+      ]
+    },
+    {
+      id: "A6", obs: 2, priorite: "consolidation",
+      titre: "Rétablissement maîtrisé après le jet (N2-4)",
+      lacune: "OBS-03 / N3 — Rétablissement non maîtrisé",
+      capacites: "N2-4 · N1-1",
+      debloques: "N2-4",
+      sa: [
+        {id:"SA-3.2", nom:"Geste complet avec rétablissement contrôlé et mesure", seances:"S11-S12",
+         desc:"Trois essais officiels notés. Critères : liaison élan-frappe + rétablissement sans sortie.",
+         consigne:"Après le lâcher, changer d'appui pour rester dans le cercle.",
+         critere:"OBS-03 noté C : rétablissement maîtrisé sur 2 essais sur 3."}
+      ]
+    }
+  ]
+};
+
+// Distributions séances x axes
+var DISTRIB = {
+  3: {6:[2,2,2],7:[2,2,3],8:[3,2,3],9:[3,3,3],10:[3,4,3]},
+  4: {6:[1,2,2,1],7:[2,2,2,1],8:[2,2,2,2],9:[2,3,2,2],10:[3,2,3,2]}
+};
+
+// ═══════════════════ ÉTAT APPLICATION ═══════════════════
+var state = {
+  eleves: [],
+  axesSelectionnes: [],
+  nbSeances: 8,
+  step: 1,
+  stepsDone: [false,false,false,false]
+};
+
+// ═══════════════════ INIT FORMULAIRE ═══════════════════
+function initForm() {
+  var html = "";
+  for (var i = 1; i <= 30; i++) {
+    var n = i < 10 ? "0"+i : ""+i;
+    html += '<div class="form-row" id="row-'+i+'">';
+    html += '<input type="text" placeholder="Élève '+n+'" id="prenom-'+i+'" />';
+    html += '<input type="text" maxlength="2" placeholder="A/B/C" id="obs1-'+i+'" style="text-align:center;text-transform:uppercase" oninput="validateObs(this)" />';
+    html += '<input type="text" maxlength="2" placeholder="A/B/C" id="obs2-'+i+'" style="text-align:center;text-transform:uppercase" oninput="validateObs(this)" />';
+    html += '<input type="text" maxlength="2" placeholder="A/B/C" id="obs3-'+i+'" style="text-align:center;text-transform:uppercase" oninput="validateObs(this)" />';
+    html += '</div>';
+  }
+  document.getElementById("formRows").innerHTML = html;
+}
+
+function validateObs(el) {
+  var v = el.value.toUpperCase().trim();
+  var isLetter = ["A","B","C"].indexOf(v) >= 0;
+  var isNum = !isNaN(parseFloat(v)) && parseFloat(v) >= 0 && parseFloat(v) <= 10;
+  el.classList.toggle("error", v !== "" && !isLetter && !isNum);
+}
+
+function clearForm() {
+  initForm();
+  document.getElementById("results1").style.display = "none";
+  state.eleves = [];
+  state.stepsDone = [false,false,false,false];
+  updateStepTabs();
+}
+
+// ═══════════════════ MAPPING DEGRÉS ═══════════════════
+function mapToScore(val) {
+  var v = val.toUpperCase().trim();
+  if (v === "A") return 3;
+  if (v === "B") return 6;
+  if (v === "C") return 9;
+  var n = parseFloat(v);
+  if (!isNaN(n) && n >= 0 && n <= 10) return n;
+  return null;
+}
+
+function scoreToGrade(s) {
+  if (s >= REF.seuilC) return "C";
+  if (s >= REF.seuilB) return "B";
+  return "A";
+}
+
+function profil(scores) {
+  var avg = (scores[0]+scores[1]+scores[2])/3;
+  return scoreToGrade(avg);
+}
+
+// ═══════════════════ LACUNE DOMINANTE ═══════════════════
+function getLacune(scores) {
+  var lacunes = [];
+  for (var i = 0; i < 3; i++) {
+    if (scores[i] < REF.seuilB) lacunes.push({obs: i, score: scores[i]});
+  }
+  lacunes.sort(function(a,b){return a.score-b.score;});
+  return lacunes;
+}
+
+function getAxePrioritaire(scores) {
+  var lacunes = getLacune(scores);
+  if (lacunes.length === 0) return "Consolidation niveau C";
+  var obsIdx = lacunes[0].obs;
+  if (obsIdx === 1) return "Construction de la translation dynamique";
+  if (obsIdx === 2) return "Organisation de la poussée des jambes";
+  return "Fixation du poids au cou et liaison élan-frappe";
+}
+
+function getSA(scores) {
+  var lacunes = getLacune(scores);
+  if (lacunes.length === 0) return "SA-3.2";
+  var obsIdx = lacunes[0].obs;
+  if (obsIdx === 1) return "SA-1.1";
+  if (obsIdx === 2) return "SA-2.1";
+  return "SA-3.1";
+}
+
+// ═══════════════════ ANALYSE CLASSE ═══════════════════
+function analyzeClass() {
+  var eleves = [];
+  var errors = 0;
+  for (var i = 1; i <= 30; i++) {
+    var prenom = document.getElementById("prenom-"+i).value.trim();
+    if (!prenom) continue;
+    var v1 = document.getElementById("obs1-"+i).value.trim();
+    var v2 = document.getElementById("obs2-"+i).value.trim();
+    var v3 = document.getElementById("obs3-"+i).value.trim();
+    var s1 = mapToScore(v1), s2 = mapToScore(v2), s3 = mapToScore(v3);
+    if (s1 === null || s2 === null || s3 === null) {
+      document.getElementById("obs1-"+i).classList.toggle("error", s1===null);
+      document.getElementById("obs2-"+i).classList.toggle("error", s2===null);
+      document.getElementById("obs3-"+i).classList.toggle("error", s3===null);
+      errors++;
+      continue;
+    }
+    var scores = [s1, s2, s3];
+    var avg = Math.round(((s1+s2+s3)/3)*10)/10;
+    var note20 = Math.round(avg*2*10)/10;
+    eleves.push({
+      prenom: prenom, scores: scores, avg: avg, note20: note20,
+      profil: profil(scores),
+      detailProfil: scoreToGrade(s1)+"/"+scoreToGrade(s2)+"/"+scoreToGrade(s3),
+      lacunes: getLacune(scores),
+      axe: getAxePrioritaire(scores),
+      sa: getSA(scores)
+    });
+  }
+  if (errors > 0) {
+    alert("Corriger les champs en rouge avant d\u2019analyser.");
+    return;
+  }
+  if (eleves.length === 0) {
+    alert("Saisir au moins un \u00e9l\u00e8ve.");
+    return;
+  }
+  eleves.sort(function(a,b){return b.avg-a.avg;});
+  eleves.forEach(function(e,i){e.rang=i+1;});
+  state.eleves = eleves;
+  renderResults();
+  document.getElementById("results1").style.display = "block";
+  state.stepsDone[0] = true;
+  updateStepTabs();
+}
+
+// ═══════════════════ RENDU RÉSULTATS ═══════════════════
+function renderResults() {
+  var eleves = state.eleves;
+  var cntA=0,cntB=0,cntC=0,sumAvg=0;
+  var sumObs=[0,0,0];
+  eleves.forEach(function(e){
+    if(e.profil==="A")cntA++;
+    else if(e.profil==="B")cntB++;
+    else cntC++;
+    sumAvg+=e.avg;
+    sumObs[0]+=e.scores[0];sumObs[1]+=e.scores[1];sumObs[2]+=e.scores[2];
+  });
+  var n = eleves.length;
+  var avgClass = Math.round(sumAvg/n*10)/10;
+
+  // Stat cards
+  var sg = document.getElementById("statGrid");
+  sg.innerHTML =
+    '<div class="stat-card card-A"><div class="stat-val">'+cntA+'</div><div class="stat-label">Degré A — '+Math.round(cntA/n*100)+'%</div></div>'+
+    '<div class="stat-card card-B"><div class="stat-val">'+cntB+'</div><div class="stat-label">Degré B — '+Math.round(cntB/n*100)+'%</div></div>'+
+    '<div class="stat-card card-C"><div class="stat-val">'+cntC+'</div><div class="stat-label">Degré C — '+Math.round(cntC/n*100)+'%</div></div>'+
+    '<div class="stat-card card-avg"><div class="stat-val">'+avgClass+'</div><div class="stat-label">Moyenne /10</div></div>'+
+    '<div class="stat-card card-avg"><div class="stat-val">'+Math.round(avgClass*2*10)/10+'</div><div class="stat-label">Moyenne /20</div></div>';
+
+  // OBS bars
+  var obsNames = ["OBS-01 · Tenue du poids","OBS-02 · Translation / Élan","OBS-03 · Équilibre / Explosivité"];
+  var ob = document.getElementById("obsBars");
+  var html = "<div style='margin-bottom:12px;font-family:var(--font);font-size:11px;color:var(--text3)'>ANALYSE PAR OBSERVABLE</div>";
+  for (var i=0;i<3;i++) {
+    var m = Math.round(sumObs[i]/n*10)/10;
+    var pct = Math.round(m/10*100);
+    var cls = m>=REF.seuilC?"fill-C":m>=REF.seuilB?"fill-B":"fill-A";
+    var st = m>=REF.seuilC?"Bon niveau — approfondir":m>=REF.seuilB?"En cours — consolider":"Lacune collective — renforcer";
+    html += '<div class="obs-bar-wrap">';
+    html += '<div class="obs-bar-label"><span>'+obsNames[i]+'</span><span style="font-family:var(--font);color:var(--text2)">'+m+'/10 — <em style="font-size:11px;color:var(--text3)">'+st+'</em></span></div>';
+    html += '<div class="obs-bar"><div class="obs-bar-fill '+cls+'" style="width:'+pct+'%"></div></div>';
+    html += '</div>';
+  }
+  ob.innerHTML = html;
+
+  // Decision
+  var dec, cls2;
+  if (cntA >= n/2){dec="Classe débutante — Priorité fondamentaux (translation et tenue du poids)";cls2="alert-warn";}
+  else if (cntC >= n/2){dec="Classe avancée — Approfondissement et tutorat";cls2="alert-ok";}
+  else{dec="Classe intermédiaire — Différenciation A/B requise";cls2="alert-info";}
+  document.getElementById("decisionBox").innerHTML = '<div class="decision-box">⚑ Décision automatique : '+dec+'<br><span style="font-size:11px;color:var(--text3)">(La décision finale reste à l\u2019enseignant)</span></div>';
+
+  // Tableau individuel
+  var tbody = document.getElementById("resultsBody");
+  var rows = "";
+  eleves.forEach(function(e){
+    var lac = e.lacunes.length>0
+      ? "L1 — "+REF.obs[e.lacunes[0].obs].id+" : "+e.lacunes[0].score.toFixed(1)+"/10"
+      : "Aucune lacune";
+    rows += '<tr class="row-'+e.profil+'">';
+    rows += '<td style="font-family:var(--font);color:var(--text3)">'+e.rang+'</td>';
+    rows += '<td style="font-weight:500;color:var(--text)">'+e.prenom+'</td>';
+    rows += '<td><span class="badge badge-'+scoreToGrade(e.scores[0])+'">'+e.scores[0].toFixed(1)+'</span></td>';
+    rows += '<td><span class="badge badge-'+scoreToGrade(e.scores[1])+'">'+e.scores[1].toFixed(1)+'</span></td>';
+    rows += '<td><span class="badge badge-'+scoreToGrade(e.scores[2])+'">'+e.scores[2].toFixed(1)+'</span></td>';
+    rows += '<td style="font-family:var(--font);font-weight:600;color:var(--text)">'+e.avg.toFixed(1)+'</td>';
+    rows += '<td style="font-family:var(--font);color:var(--text2)">'+e.note20.toFixed(1)+'</td>';
+    rows += '<td><span class="badge badge-'+e.profil+'">'+e.profil+'</span></td>';
+    rows += '<td style="font-family:var(--font);font-size:11px;color:var(--text2)">'+e.detailProfil+'</td>';
+    rows += '<td style="font-size:11px;color:var(--text2)">'+lac+'</td>';
+    rows += '<td style="font-size:11px;color:var(--text2)">'+e.axe+'</td>';
+    rows += '<td><span class="badge badge-info">'+e.sa+'</span></td>';
+    rows += '</tr>';
+  });
+  tbody.innerHTML = rows;
+}
+
+// ═══════════════════ ÉTAPE 2 — AXES ═══════════════════
+function goToStep2() {
+  gotoStep(2);
+  renderAxeCards();
+}
+
+function renderAxeCards() {
+  var eleves = state.eleves;
+  var n = eleves.length || 1;
+  // Calcul pertinence par observable
+  var lacObs = [0,0,0];
+  eleves.forEach(function(e){
+    e.lacunes.forEach(function(l){lacObs[l.obs]++;});
+  });
+
+  var axes = REF.axes.map(function(a){
+    var pct = Math.round(lacObs[a.obs]/n*100);
+    return {axe:a, pct:pct};
+  });
+  axes.sort(function(a,b){return b.pct-a.pct;});
+
+  var html = "";
+  axes.forEach(function(item, idx){
+    var a = item.axe;
+    var pct = item.pct;
+    var obsLabel = REF.obs[a.obs].id+" · moy. "+Math.round((lacObs[a.obs]>0?3:6)*10)/10+"/10";
+    html += '<div class="axe-card-sel" id="axecard-'+a.id+'" onclick="toggleAxe(\''+a.id+'\')">';
+    html += '<div class="axe-sel-chk" id="chk-'+a.id+'"></div>';
+    html += '<div style="flex:1">';
+    html += '<div class="axe-sel-title">Axe '+( idx+1)+" — "+a.titre+'</div>';
+    html += '<div class="axe-sel-meta">Lacune : '+a.lacune+' | Capacités : '+a.capacites+'</div>';
+    html += '<div class="axe-pert">Pertinence : '+pct+'% des élèves concernés · '+obsLabel+'</div>';
+    html += '</div></div>';
+  });
+  document.getElementById("axeCards").innerHTML = html;
+  state.axesSelectionnes = [];
+  updateAxeBtn();
+}
+
+function toggleAxe(id) {
+  var idx = state.axesSelectionnes.indexOf(id);
+  var msg = document.getElementById("axeMsg");
+  if (idx >= 0) {
+    state.axesSelectionnes.splice(idx,1);
+    document.getElementById("axecard-"+id).classList.remove("selected");
+    document.getElementById("chk-"+id).textContent = "";
+    msg.style.display = "none";
+  } else {
+    if (state.axesSelectionnes.length >= 4) {
+      msg.textContent = "Maximum 4 axes atteint. Décocher un axe avant d\u2019en sélectionner un autre.";
+      msg.style.display = "block";
+      return;
+    }
+    state.axesSelectionnes.push(id);
+    document.getElementById("axecard-"+id).classList.add("selected");
+    document.getElementById("chk-"+id).textContent = "✓";
+    msg.style.display = "none";
+  }
+  updateAxeBtn();
+}
+
+function updateAxeBtn() {
+  var n = state.axesSelectionnes.length;
+  var btn = document.getElementById("btnStep3");
+  btn.disabled = n < 3;
+  btn.textContent = n >= 3
+    ? "→ Paramétrer le cycle — Étape 3 ("+n+" axes)"
+    : "→ Sélectionner au moins 3 axes ("+n+" sélectionné"+(n>1?"s":"")+")";
+}
+
+// ═══════════════════ ÉTAPE 3 — SLIDER ═══════════════════
+function goToStep3() {
+  state.stepsDone[1] = true;
+  updateStepTabs();
+  gotoStep(3);
+  updateSlider();
+}
+
+function updateSlider() {
+  var n = parseInt(document.getElementById("sliderSeances").value);
+  state.nbSeances = n;
+  document.getElementById("sliderVal").textContent = n+" séance"+(n>1?"s":"");
+  var nbAxes = state.axesSelectionnes.length;
+  var key = nbAxes >= 3 && nbAxes <= 4 ? nbAxes : 3;
+  var dist = DISTRIB[key][n] || DISTRIB[3][n];
+  var axesSel = state.axesSelectionnes.map(function(id){
+    return REF.axes.filter(function(a){return a.id===id;})[0];
+  });
+  var html = '<div style="font-family:var(--font);font-size:11px;color:var(--text3);margin-bottom:10px">DISTRIBUTION AUTOMATIQUE — '+key+' axes × '+n+' séances</div>';
+  var cumul = 0;
+  dist.forEach(function(nb, i){
+    var axe = axesSel[i] || axesSel[axesSel.length-1];
+    cumul += nb;
+    var pct = Math.round(nb/n*100);
+    var titre = axe ? axe.titre : "—";
+    html += '<div class="distrib-row">';
+    html += '<div class="distrib-seq">Séquence '+(i+1)+' · '+nb+' S</div>';
+    html += '<div class="distrib-bar-wrap"><div class="distrib-bar" style="width:'+pct+'%"></div></div>';
+    html += '<div class="distrib-info" style="font-size:11px">'+titre.substring(0,45)+'…</div>';
+    html += '</div>';
+  });
+  document.getElementById("distribPreview").innerHTML = html;
+}
+
+// ═══════════════════ ÉTAPE 4 — PLANIFICATION ═══════════════════
+function goToStep4() {
+  state.stepsDone[2] = true;
+  updateStepTabs();
+  gotoStep(4);
+  renderPlanif();
+}
+
+function renderPlanif() {
+  var n = state.nbSeances;
+  var nbAxes = state.axesSelectionnes.length;
+  var key = nbAxes >= 3 && nbAxes <= 4 ? nbAxes : 3;
+  var dist = DISTRIB[key][n] || DISTRIB[3][n];
+  var axesSel = state.axesSelectionnes.map(function(id){
+    return REF.axes.filter(function(a){return a.id===id;})[0];
+  });
+  var eleves = state.eleves;
+  var n_el = eleves.length;
+  var cntA = eleves.filter(function(e){return e.profil==="A";}).length;
+  var cntB = eleves.filter(function(e){return e.profil==="B";}).length;
+  var cntC = eleves.filter(function(e){return e.profil==="C";}).length;
+
+  var html = "";
+  var globalSeance = 0;
+
+  dist.forEach(function(nbSeq, seqIdx){
+    var axe = axesSel[seqIdx] || axesSel[axesSel.length-1];
+    var sa = axe.sa[0];
+    html += '<div class="seq-block">';
+    html += '<div class="seq-header">';
+    html += '<span class="seq-num">SÉQUENCE '+(seqIdx+1)+' · '+nbSeq+' séance'+(nbSeq>1?"s":"")+'</span>';
+    html += '<span class="seq-title">'+axe.titre+'</span>';
+    html += '<span class="seq-badge"><span class="badge badge-info">'+axe.id+'</span></span>';
+    html += '</div>';
+    html += '<div class="seance-head">';
+    html += '<span>N°</span><span>Objectif</span><span style="color:var(--red)">Groupe A</span><span style="color:var(--amber)">Groupe B</span><span style="color:var(--green)">Groupe C</span>';
+    html += '</div>';
+
+    for (var s=0; s<nbSeq; s++) {
+      globalSeance++;
+      var saItem = axe.sa[Math.min(s, axe.sa.length-1)];
+      var isLast = (seqIdx===dist.length-1) && (s===nbSeq-1);
+      html += '<div class="seance-row">';
+      html += '<div class="seance-cell seance-num">S'+globalSeance+'</div>';
+      html += '<div class="seance-cell">';
+      html += '<div class="seance-cell-title">'+saItem.id+' — '+saItem.nom+'</div>';
+      html += '<div class="seance-cell-body">'+saItem.desc+'</div>';
+      html += '</div>';
+      // Groupe A
+      html += '<div class="seance-cell" style="background:#1a0f0f">';
+      html += '<div class="seance-cell-title" style="color:var(--red)">Groupe A</div>';
+      html += '<div class="seance-cell-body">'+saItem.consigne+'</div>';
+      html += '<div class="seance-cell-crit">Critère : '+saItem.critere+'</div>';
+      html += '</div>';
+      // Groupe B
+      html += '<div class="seance-cell" style="background:#1c1500">';
+      html += '<div class="seance-cell-title" style="color:var(--amber)">Groupe B</div>';
+      html += '<div class="seance-cell-body">'+saItem.consigne+' (autonomie progressive).</div>';
+      html += '<div class="seance-cell-crit">Critère : '+saItem.critere+' · rôle observateur.</div>';
+      html += '</div>';
+      // Groupe C
+      html += '<div class="seance-cell" style="background:#0d1f14">';
+      html += '<div class="seance-cell-title" style="color:var(--green)">Groupe C</div>';
+      html += '<div class="seance-cell-body">Tutorat + tentative niveau supérieur.</div>';
+      html += '<div class="seance-cell-crit">Critère : objectif N2 amorcé.</div>';
+      html += '</div>';
+      html += '</div>';
+      // Indicatif
+      if (!isLast) {
+        html += '<div class="indicatif-row">';
+        html += '<div class="indicatif-label">📋 OBS.</div>';
+        html += '<div>';
+        html += "<span style='color:var(--text2);font-size:11px'>";
+        html += "À observer avant la séance suivante : "+axe.capacites+" — vérifier que les appuis sont coordonnés sans interruption dans au moins 2 actions sur 3.";
+        html += " <em style='color:var(--text3)'>(Indicatif — décision de progression : vous)</em></span>";
+        html += '</div></div>';
+      }
+    }
+    html += '</div>';
+  });
+
+  // Résumé
+  html += '<div class="card" style="margin-top:24px">';
+  html += '<div class="card-title">Résumé du cycle</div>';
+  html += '<table class="summary-table"><thead><tr>';
+  html += '<th>Séquence</th><th>Axe travaillé</th><th>Séances</th><th>Profil dominant ciblé</th>';
+  html += '</tr></thead><tbody>';
+  dist.forEach(function(nb,i){
+    var a = axesSel[i]||axesSel[axesSel.length-1];
+    html += '<tr>';
+    html += '<td>Séquence '+(i+1)+'</td>';
+    html += '<td>'+a.titre+'</td>';
+    html += '<td style="text-align:center;font-family:var(--font)">'+nb+'</td>';
+    html += '<td><span class="badge badge-A">A</span> <span class="badge badge-B">B</span></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  var dominant = cntA>=cntB&&cntA>=cntC?"A":cntB>=cntC?"B":"C";
+  var cntDom = dominant==="A"?cntA:dominant==="B"?cntB:cntC;
+  html += '<div class="reco-box">';
+  html += "Ce cycle de <strong>"+n+" séances</strong> cible <strong>"+nbAxes+" axes prioritaires</strong>.<br>";
+  html += "Profil le plus concerné : <strong>"+dominant+"</strong> ("+cntDom+" élève"+(cntDom>1?"s":"")+" · "+Math.round(cntDom/n_el*100)+"%"+(n_el>0?"":" — données manquantes")+").<br>";
+  html += "Réévaluer après la séquence <strong>2</strong> avec une nouvelle collecte terrain.<br>";
+  html += "<em style='font-size:11px;color:var(--text3)'>L\u2019outil ne produit pas de note. La décision finale reste à l\u2019enseignant.</em>";
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById("planifContent").innerHTML = html;
+  state.stepsDone[3] = true;
+  updateStepTabs();
+}
+
+// ═══════════════════ NAVIGATION ═══════════════════
+function gotoStep(n) {
+  if (n > 1 && !state.stepsDone[n-2]) return;
+  state.step = n;
+  for (var i=1;i<=4;i++) {
+    document.getElementById("section-"+i).classList.toggle("active", i===n);
+  }
+  updateStepTabs();
+}
+
+function updateStepTabs() {
+  for (var i=1;i<=4;i++) {
+    var tab = document.getElementById("step-tab-"+i);
+    tab.className = "step-item";
+    if (i === state.step) tab.classList.add("active");
+    else if (state.stepsDone[i-1]) tab.classList.add("done");
+    else if (!state.stepsDone[i-2] && i>1) tab.classList.add("locked");
+  }
+}
+
+// ═══════════════════ CSV IMPORT ═══════════════════
+function handleDragOver(e) {e.preventDefault();document.getElementById("dropZone").classList.add("dragover");}
+function handleDragLeave(e) {document.getElementById("dropZone").classList.remove("dragover");}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.remove("dragover");
+  var f = e.dataTransfer.files[0];
+  if (f) parseCSVFile(f);
+}
+function handleCSV(e) {var f=e.target.files[0];if(f)parseCSVFile(f);}
+
+function parseCSVFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/\r?\n/);
+    // Chercher la ligne d'en-tête quelle que soit sa position
+    var headerIdx = -1;
+    var headers = [];
+    for (var i=0;i<lines.length;i++) {
+      var lower = lines[i].toLowerCase();
+      if (lower.indexOf("nom_eleve") >= 0 || lower.indexOf("prenom") >= 0) {
+        headerIdx = i;
+        headers = lines[i].split(/[,;]/).map(function(h){return h.trim();});
+        break;
+      }
+    }
+    if (headerIdx < 0) {
+      showCSVMsg("En-tête non trouvée. La colonne Nom_Eleve ou Prenom est introuvable.", false);
+      return;
+    }
+
+    // Colonnes
+    var colPrenom = findCol(headers, ["nom_eleve","prenom","nom","élève","eleve"]);
+    var obs1Col = findColPriority(headers, ["obs01_","obs-01_","obs01 "], ["obs01_degre","obs-01_degre"], ["obs1","o1"]);
+    var obs2Col = findColPriority(headers, ["obs02_","obs-02_","obs02 "], ["obs02_degre","obs-02_degre"], ["obs2","o2"]);
+    var obs3Col = findColPriority(headers, ["obs03_","obs-03_","obs03 "], ["obs03_degre","obs-03_degre"], ["obs3","o3"]);
+
+    var loaded = 0, ignored = 0;
+    for (var r=headerIdx+1;r<lines.length;r++) {
+      var line = lines[r].trim();
+      if (!line) {ignored++;continue;}
+      var cells = line.split(/[,;]/);
+      if (cells.length < 2) {ignored++;continue;}
+      var pren = colPrenom>=0 ? cells[colPrenom].trim() : "";
+      if (!pren || pren.toLowerCase().indexOf("bilan") >= 0) {ignored++;continue;}
+      var v1 = obs1Col>=0 ? cells[obs1Col].trim() : "";
+      var v2 = obs2Col>=0 ? cells[obs2Col].trim() : "";
+      var v3 = obs3Col>=0 ? cells[obs3Col].trim() : "";
+      if (loaded < 30) {
+        var rowNum = loaded+1;
+        var el = document.getElementById("prenom-"+rowNum);
+        if (el) el.value = pren;
+        var o1 = document.getElementById("obs1-"+rowNum);
+        var o2 = document.getElementById("obs2-"+rowNum);
+        var o3 = document.getElementById("obs3-"+rowNum);
+        if (o1) o1.value = v1.toUpperCase();
+        if (o2) o2.value = v2.toUpperCase();
+        if (o3) o3.value = v3.toUpperCase();
+        loaded++;
+      }
+    }
+    showCSVMsg(loaded+" élève"+(loaded>1?"s":"")+" chargé"+(loaded>1?"s":"")+" · "+ignored+" ligne"+(ignored>1?"s":"")+" ignorée"+(ignored>1?"s":"")+". Cliquer sur Analyser.", true);
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function findCol(headers, keys) {
+  for (var i=0;i<headers.length;i++) {
+    var h = headers[i].toLowerCase().trim();
+    for (var k=0;k<keys.length;k++) if (h===keys[k]||h.indexOf(keys[k])>=0) return i;
+  }
+  return -1;
+}
+
+function findColPriority(headers, p1, p2, p3) {
+  var r = findCol(headers, p1);
+  if (r>=0) return r;
+  r = findCol(headers, p2);
+  if (r>=0) return r;
+  return findCol(headers, p3);
+}
+
+function showCSVMsg(msg, ok) {
+  var el = document.getElementById("csvMsg");
+  el.innerHTML = '<p class="'+(ok?"success-msg":"error-msg")+'">'+msg+'</p>';
+}
+
+// ═══════════════════ EXPORT CSV ═══════════════════
+function exportCSV() {
+  if (!state.eleves.length) {alert("Lancer d\u2019abord l\u2019analyse.");return;}
+  var bom = "\uFEFF";
+  var rows = ["Prénom,Code OBS-01,OBS-01,Code OBS-02,OBS-02,Code OBS-03,OBS-03,Moyenne,/20,Rang,Profil global,Profil détaillé,Lacune 1,SA recommandée"];
+  state.eleves.forEach(function(e){
+    var lac = e.lacunes.length>0
+      ? "L1 - "+REF.obs[e.lacunes[0].obs].id+" : "+e.lacunes[0].score.toFixed(1)+"/10"
+      : "Aucune lacune";
+    rows.push([
+      e.prenom,
+      scoreToGrade(e.scores[0]),e.scores[0].toFixed(1),
+      scoreToGrade(e.scores[1]),e.scores[1].toFixed(1),
+      scoreToGrade(e.scores[2]),e.scores[2].toFixed(1),
+      e.avg.toFixed(1),e.note20.toFixed(1),e.rang,
+      e.profil,e.detailProfil,lac,e.sa
+    ].join(","));
+  });
+  var today = new Date();
+  var d = today.getFullYear()+""+String(today.getMonth()+1).padStart(2,"0")+""+String(today.getDate()).padStart(2,"0");
+  var csv = bom+rows.join("\n");
+  var a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+  a.download = "outil_v0_POIDS_DI-POI_"+d+".csv";
+  a.click();
+}
+
+// ═══════════════════ INIT ═══════════════════
+initForm();
+updateStepTabs();
+</script>
+</body>
+</html>

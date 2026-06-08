@@ -1,0 +1,2594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outil ADP 2026 — Lancer de Poids DI-POI</title>
+<style>
+  /* ===== DESIGN SYSTEM ===== */
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22253a;
+    --border: #2e3250;
+    --accent: #4f8ef7;
+    --accent2: #f7c94f;
+    --green: #3ecf8e;
+    --orange: #f79c4f;
+    --red: #f75f5f;
+    --text: #e8eaf2;
+    --text2: #8b91b5;
+    --radius: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    width: 42px; height: 42px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  header h1 { font-size: 16px; font-weight: 700; color: var(--text); }
+  header p { font-size: 11px; color: var(--text2); }
+  .print-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .print-btn:hover { color: var(--text); border-color: var(--accent); }
+  /* MENU IMPRESSION */
+  .print-menu-wrap { position: relative; display: inline-block; }
+  .print-menu {
+    display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; min-width: 220px; z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4); overflow: hidden;
+  }
+  .print-menu.open { display: block; }
+  .print-menu-title {
+    padding: 10px 14px 6px; font-size: 11px; font-weight: 700;
+    color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .print-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; font-size: 13px;
+    color: var(--text); transition: background 0.15s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .print-menu-item:hover { background: rgba(79,142,247,0.12); color: var(--accent); }
+  .print-menu-item .pm-icon { font-size: 16px; flex-shrink: 0; }
+  .print-menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
+  /* BOUTON ACCUEIL — ajout unique */
+  .home-btn {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .home-btn:hover { color: var(--text); border-color: var(--accent); }
+  /* MODE CLAIR */
+  body.light {
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --surface2: #e4e7f2;
+    --border: #c8cde0;
+    --text: #1a1d2e;
+    --text2: #5a6080;
+  }
+  body.light header {
+    background: linear-gradient(135deg, #ffffff 0%, #e4e7f2 100%);
+  }
+  body.light .steps-bar { background: #ffffff; }
+  .theme-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* STEP INDICATOR */
+  .steps-bar {
+    display: flex; align-items: center;
+    gap: 0; padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text2); cursor: default; white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .step-item.active { background: var(--accent); color: #fff; }
+  .step-item.done { color: var(--green); }
+  .step-sep { color: var(--border); margin: 0 4px; }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+  .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text2); }
+
+  /* FORM */
+  .student-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px 70px 70px 75px 36px;
+    gap: 6px; margin-bottom: 6px; align-items: center;
+  }
+  .student-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .student-row input:focus { outline: none; border-color: var(--accent); }
+  .student-row input.err { border-color: var(--red); }
+  .student-row input.perf-low  { border-color: var(--red);    color: #f79090; }
+  .student-row input.perf-ok   { border-color: var(--orange); color: #f7c94f; }
+  .student-row input.perf-high { border-color: var(--green);  color: #3ecf8e; }
+  .row-num { color: var(--text2); font-size: 12px; text-align: center; }
+  .form-header {
+    display: grid;
+    grid-template-columns: 30px 1fr 70px 70px 70px 75px 36px;
+    gap: 6px; margin-bottom: 8px;
+  }
+  .form-header span { font-size: 11px; color: var(--text2); font-weight: 600; text-align: center; }
+  .form-header span:nth-child(2) { text-align: left; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7be0; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-success { background: var(--green); color: #000; }
+  .btn-success:hover { background: #2eb87a; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* IMPORT */
+  .import-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .import-zone:hover { border-color: var(--accent); }
+  .import-zone p { color: var(--text2); font-size: 13px; }
+  #csv-input { display: none; }
+
+  /* ALERT */
+  .alert {
+    padding: 10px 14px; border-radius: 7px;
+    font-size: 12px; margin-bottom: 12px;
+  }
+  .alert-info { background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); color: #90b8ff; }
+  .alert-warn { background: rgba(247,156,79,0.15); border: 1px solid rgba(247,156,79,0.3); color: #f7c94f; }
+  .alert-err  { background: rgba(247,95,95,0.15);  border: 1px solid rgba(247,95,95,0.3);  color: #f79090; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: var(--surface2); color: var(--text2);
+    padding: 8px 10px; text-align: left; font-weight: 600;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .data-table td {
+    padding: 7px 10px; border-bottom: 1px solid rgba(46,50,80,0.5);
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: rgba(79,142,247,0.05); }
+  .data-table tr.prof-A td { background: rgba(247,95,95,0.06); }
+  .data-table tr.prof-B td { background: rgba(247,156,79,0.06); }
+  .data-table tr.prof-C td { background: rgba(62,207,142,0.06); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-A { background: rgba(247,95,95,0.2); color: #f79090; }
+  .badge-B { background: rgba(247,156,79,0.2); color: #f7c94f; }
+  .badge-C { background: rgba(62,207,142,0.2); color: #3ecf8e; }
+
+  /* STAT CARDS */
+  .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; text-align: center;
+  }
+  .stat-card .val { font-size: 26px; font-weight: 800; }
+  .stat-card .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .stat-card.A .val { color: var(--red); }
+  .stat-card.B .val { color: var(--orange); }
+  .stat-card.C .val { color: var(--green); }
+  .stat-card.avg .val { color: var(--accent); }
+
+  /* AXES SELECTION */
+  .axe-item {
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .axe-item:hover { border-color: var(--accent); }
+  .axe-item.selected { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+  .axe-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--accent); }
+  .axe-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .axe-meta { font-size: 11px; color: var(--text2); }
+  .axe-pct { font-size: 20px; font-weight: 800; color: var(--accent2); float: right; }
+
+  /* SLIDER */
+  .slider-wrap { padding: 10px 0 20px; }
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: var(--border); border-radius: 3px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: var(--accent); border-radius: 50%; cursor: pointer;
+  }
+  .slider-labels { display: flex; justify-content: space-between; color: var(--text2); font-size: 11px; margin-top: 4px; }
+  .slider-display {
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin-top: 16px;
+    font-size: 13px;
+  }
+  .slider-display strong { color: var(--accent2); }
+
+  /* PLANNING */
+  .seq-block { margin-bottom: 24px; }
+  .seq-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 16px; border-radius: 8px 8px 0 0;
+    font-weight: 700; font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .seq-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .seq-table th {
+    background: var(--surface2); padding: 8px 10px;
+    border: 1px solid var(--border); color: var(--text2);
+    font-size: 11px;
+  }
+  .seq-table td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .seq-table td.grp-A { background: rgba(247,95,95,0.05); }
+  .seq-table td.grp-B { background: rgba(247,156,79,0.05); }
+  .seq-table td.grp-C { background: rgba(62,207,142,0.05); }
+  .sa-name { font-weight: 700; color: var(--accent2); }
+  .consigne { color: var(--text2); font-size: 11px; margin-top: 3px; }
+  .critere { color: var(--green); font-size: 11px; margin-top: 3px; font-style: italic; }
+  .indicatif {
+    background: rgba(139,145,181,0.1); border-left: 3px solid var(--text2);
+    padding: 6px 10px; font-size: 11px; color: var(--text2);
+    margin-top: 4px; border-radius: 0 4px 4px 0;
+  }
+
+  /* DECISION BOX */
+  .decision-box {
+    border: 2px solid var(--accent2);
+    border-radius: 10px; padding: 16px;
+    background: rgba(247,201,79,0.06);
+    margin-bottom: 20px;
+  }
+  .decision-box p { font-size: 13px; }
+  .decision-box strong { color: var(--accent2); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SAUVEGARDE INDICATOR */
+  #save-indicator {
+    position: fixed; bottom: 18px; right: 18px;
+    background: var(--green); color: #000;
+    padding: 8px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    opacity: 0; transition: opacity 0.4s;
+    z-index: 999; pointer-events: none;
+  }
+
+  /* MODAL FICHE ELEVE */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px; width: 90%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto; position: relative;
+  }
+  .modal-box h2 { font-size: 17px; font-weight: 800; margin-bottom: 18px; color: var(--accent2); }
+  .modal-close {
+    position: absolute; top: 14px; right: 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; font-size: 13px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .radar-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+  .fiche-obs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;
+  }
+  .fiche-obs-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; text-align: center;
+  }
+  .fiche-obs-card .foc-lbl { font-size: 10px; color: var(--text2); margin-bottom: 4px; }
+  .fiche-obs-card .foc-val { font-size: 20px; font-weight: 800; }
+  .fiche-obs-card.A .foc-val { color: var(--red); }
+  .fiche-obs-card.B .foc-val { color: var(--orange); }
+  .fiche-obs-card.C .foc-val { color: var(--green); }
+  .fiche-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(46,50,80,0.3); font-size: 13px; }
+  .fiche-row:last-child { border-bottom: none; }
+  .fiche-row span:first-child { color: var(--text2); }
+  .fiche-row span:last-child { font-weight: 700; }
+  .fiche-notes {
+    width: 100%; margin-top: 14px; padding: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 13px;
+    resize: vertical; min-height: 70px; font-family: inherit;
+  }
+  .fiche-notes:focus { outline: none; border-color: var(--accent); }
+  .tbody-clickable tr { cursor: pointer; }
+  .tbody-clickable tr:hover td { background: rgba(79,142,247,0.12) !important; }
+
+  /* ===== TIMELINE PROGRESSION ===== */
+  .timeline-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;
+  }
+  .timeline-wrap h3 { font-size: 13px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; }
+  .timeline-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tl-seance { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
+  .tl-check {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: var(--text2); transition: all 0.25s;
+  }
+  .tl-check.done { background: var(--green); border-color: var(--green); color: #000; }
+  .tl-check.current { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.25); }
+  .tl-lbl { font-size: 10px; color: var(--text2); }
+  .tl-progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .tl-progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.4s ease; }
+  .tl-stats { font-size: 12px; color: var(--text2); display: flex; gap: 16px; flex-wrap: wrap; }
+  .tl-stats strong { color: var(--text); }
+
+  /* ===== COMPARAISON AVANT/APRES ===== */
+  .comp-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .comp-drop {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s;
+  }
+  .comp-drop:hover { border-color: var(--accent); }
+  .comp-drop.loaded { border-color: var(--green); border-style: solid; }
+  .comp-drop p { color: var(--text2); font-size: 12px; margin-top: 4px; }
+  .comp-drop .comp-icon { font-size: 28px; }
+  .comp-drop .comp-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+  .comp-table th { background: var(--surface2); padding: 8px 10px; border: 1px solid var(--border); color: var(--text2); font-size: 11px; }
+  .comp-table td { padding: 7px 10px; border: 1px solid var(--border); vertical-align: middle; }
+  .comp-table tr:hover td { background: rgba(79,142,247,0.05); }
+  .delta-pos { color: var(--green); font-weight: 700; }
+  .delta-neg { color: var(--red); font-weight: 700; }
+  .delta-neu { color: var(--text2); }
+  .comp-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin: 14px 0; }
+  .comp-sum-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+  .comp-sum-card .csv { font-size: 11px; color: var(--text2); }
+  .comp-sum-card .val { font-size: 20px; font-weight: 800; margin: 2px 0; }
+  .comp-sum-card.pos .val { color: var(--green); }
+  .comp-sum-card.neg .val { color: var(--red); }
+  .comp-sum-card.neu .val { color: var(--accent); }
+
+  /* ===== GESTION MULTI-CLASSES ===== */
+  .classes-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 10px 24px; display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .classes-bar .cb-label { font-size: 11px; color: var(--text2); font-weight: 700; white-space: nowrap; }
+  .classe-tab {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .classe-tab:hover { border-color: var(--accent); color: var(--text); }
+  .classe-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .classe-tab.add-btn { border-style: dashed; }
+  .classe-tab.add-btn:hover { background: rgba(79,142,247,0.1); }
+  .classe-tab-wrap { display: flex; align-items: center; gap: 4px; }
+  .classe-del {
+    width: 16px; height: 16px; border-radius: 50%; background: rgba(247,95,95,0.3);
+    border: none; color: #f79090; font-size: 10px; cursor: pointer; line-height: 1;
+    display: none; align-items: center; justify-content: center; padding: 0;
+  }
+  .classe-tab.active ~ .classe-del,
+  .classe-tab-wrap:hover .classe-del { display: inline-flex; }
+
+  /* ===== MODE TABLETTE TERRAIN ===== */
+  .tablet-toggle {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); padding: 8px 14px; border-radius: 7px;
+    cursor: pointer; font-size: 12px;
+  }
+  .tablet-toggle:hover { color: var(--text); border-color: var(--accent); }
+  .tablet-toggle.on { background: var(--orange); color: #000; border-color: var(--orange); }
+
+  body.tablet-mode .student-row {
+    grid-template-columns: 30px 1fr 60px 60px 60px 70px 36px;
+    margin-bottom: 10px;
+  }
+  body.tablet-mode .student-row input[data-obs] { display: none; }
+  body.tablet-mode .obs-btn-group { display: flex !important; }
+  body.tablet-mode .student-row input[type=number] { display: block !important; }
+  .obs-btn-group {
+    display: none; gap: 3px;
+  }
+  .obs-btn {
+    flex: 1; padding: 8px 0; border-radius: 6px; font-size: 13px; font-weight: 800;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .obs-btn:hover { border-color: var(--accent); }
+  .obs-btn.sel-A { background: rgba(247,95,95,0.3); color: #f75f5f; border-color: #f75f5f; }
+  .obs-btn.sel-B { background: rgba(247,156,79,0.3); color: #f79c4f; border-color: #f79c4f; }
+  .obs-btn.sel-C { background: rgba(62,207,142,0.3); color: #3ecf8e; border-color: #3ecf8e; }
+  body.tablet-mode .form-header {
+    grid-template-columns: 30px 1fr 60px 60px 60px 70px 36px;
+  }
+  body:not(.tablet-mode) .obs-btn-group { display: none !important; }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .student-row, .form-header { grid-template-columns: 25px 1fr 50px 50px 50px 60px 30px; }
+    .stat-cards { grid-template-columns: 1fr 1fr; }
+    main { padding: 12px; }
+    .seq-table { font-size: 11px; }
+  }
+
+  /* PRINT */
+  @media print {
+    /* === Éléments à masquer à l'impression === */
+    header .print-btn, header .home-btn, header .theme-btn,
+    .steps-bar, .btn, .import-zone, input[type=range],
+    form, #step1-form, .no-print,
+    #modal-fiche, #save-indicator,
+    .modal-overlay, .modal-close,
+    #timeline-progression .tl-seance,
+    .comp-drop { display: none !important; }
+
+    /* === Mise en page générale === */
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: #fff !important; color: #111 !important; font-size: 11pt; margin: 0; }
+    main { max-width: 100% !important; padding: 0 !important; }
+    header { position: static !important; background: #fff !important; border-bottom: 2px solid #333 !important; padding: 10px 16px !important; }
+    header h1 { color: #111 !important; font-size: 14pt !important; }
+    header p  { color: #555 !important; }
+    .logo { background: #4f8ef7 !important; }
+
+    /* === Sections : n'afficher que la section active === */
+    .section { display: none !important; }
+    .section.active { display: block !important; }
+
+    /* === Cards === */
+    .card { border: 1px solid #bbb !important; background: #fff !important; margin-bottom: 12px !important; page-break-inside: avoid; }
+    .card h2 { color: #2a2a2a !important; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    .card h3 { color: #444 !important; }
+
+    /* === Tableaux === */
+    .data-table th, .seq-table th, .cycle-summary th, .comp-table th {
+      background: #e8eaf2 !important; color: #222 !important;
+    }
+    .data-table td, .seq-table td, .cycle-summary td, .comp-table td {
+      color: #111 !important; border-color: #ccc !important;
+    }
+    .data-table tr.prof-A td { background: #fff0f0 !important; }
+    .data-table tr.prof-B td { background: #fff8e8 !important; }
+    .data-table tr.prof-C td { background: #f0fff8 !important; }
+    .seq-table td.grp-A { background: #fff0f0 !important; }
+    .seq-table td.grp-B { background: #fff8e8 !important; }
+    .seq-table td.grp-C { background: #f0fff8 !important; }
+    .table-wrap { overflow: visible !important; }
+
+    /* === Stat cards === */
+    .stat-card { background: #f5f5f5 !important; border: 1px solid #ccc !important; }
+    .stat-card.A .val { color: #c0392b !important; }
+    .stat-card.B .val { color: #e67e22 !important; }
+    .stat-card.C .val { color: #27ae60 !important; }
+    .stat-card.avg .val { color: #2980b9 !important; }
+    .stat-card .lbl { color: #555 !important; }
+
+    /* === Obs cards === */
+    .obs-card { background: #f5f5f5 !important; border: 1px solid #ccc !important; }
+    .obs-card.lacune .obs-val { color: #c0392b !important; }
+    .obs-card.cours .obs-val  { color: #e67e22 !important; }
+    .obs-card.bon .obs-val    { color: #27ae60 !important; }
+    .obs-card .obs-title, .obs-card .obs-status { color: #444 !important; }
+
+    /* === Badges === */
+    .badge-A { background: #fde8e8 !important; color: #c0392b !important; }
+    .badge-B { background: #fdf3e0 !important; color: #e67e22 !important; }
+    .badge-C { background: #e8fdf0 !important; color: #27ae60 !important; }
+
+    /* === Decision box === */
+    .decision-box { border-color: #e67e22 !important; background: #fffbf0 !important; }
+    .decision-box strong { color: #e67e22 !important; }
+
+    /* === Groupe besoin === */
+    .groupe-need { background: #f5f5f5 !important; border-color: #ccc !important; }
+
+    /* === Séquences planning === */
+    .seq-header { background: #4f8ef7 !important; color: #fff !important; }
+    .sa-name { color: #b8860b !important; }
+    .critere  { color: #27ae60 !important; }
+    .consigne { color: #444 !important; }
+    .indicatif { background: #f5f5f5 !important; border-left-color: #888 !important; color: #555 !important; }
+
+    /* === Reco box === */
+    .reco-box { background: #eef4ff !important; border-color: #4f8ef7 !important; color: #111 !important; }
+
+    /* === Timeline (afficher sans cases à cocher) === */
+    .timeline-wrap { background: #f5f5f5 !important; border-color: #ccc !important; }
+    .tl-check { border-color: #888 !important; background: #fff !important; color: #111 !important; }
+    .tl-check.done { background: #27ae60 !important; color: #fff !important; }
+    .tl-progress-track { background: #ddd !important; }
+    .tl-progress-fill  { background: #27ae60 !important; }
+    .tl-stats { color: #444 !important; }
+    .tl-stats strong { color: #111 !important; }
+
+    /* === Saut de page intelligent === */
+    .seq-block { page-break-inside: avoid; }
+    .card { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+
+    /* === En-tête de page imprimée === */
+    @page { margin: 1.5cm; }
+  }
+
+  /* Overflow tables */
+  .table-wrap { overflow-x: auto; }
+  .obs-analysis { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+  .obs-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px;
+  }
+  .obs-card .obs-title { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+  .obs-card .obs-val { font-size: 22px; font-weight: 800; }
+  .obs-card .obs-status { font-size: 11px; margin-top: 4px; }
+  .obs-card.lacune .obs-val { color: var(--red); }
+  .obs-card.cours .obs-val { color: var(--orange); }
+  .obs-card.bon .obs-val { color: var(--green); }
+  .groupe-need {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cycle-summary { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cycle-summary th { background: var(--surface2); padding: 8px; border: 1px solid var(--border); color: var(--text2); }
+  .cycle-summary td { padding: 8px; border: 1px solid var(--border); }
+  .reco-box {
+    background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 8px; padding: 14px; margin-top: 16px;
+    font-size: 13px; color: var(--text);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- INDICATEUR SAUVEGARDE -->
+<div id="save-indicator">💾 Sauvegardé</div>
+
+<!-- MODAL FICHE ELEVE -->
+<div class="modal-overlay" id="modal-fiche" onclick="fermerFiche(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('modal-fiche').classList.remove('open')">✕ Fermer</button>
+    <h2 id="fiche-titre">Fiche élève</h2>
+    <div class="radar-wrap"><canvas id="fiche-radar" width="220" height="220"></canvas></div>
+    <div class="fiche-obs" id="fiche-obs"></div>
+    <div id="fiche-details"></div>
+    <textarea class="fiche-notes" id="fiche-notes" placeholder="Notes libres sur cet élève..." oninput="sauvegarderNote()"></textarea>
+  </div>
+</div>
+
+<header>
+  <div class="logo">⚙️</div>
+  <div>
+    <h1>Outil ADP 2026 — Lancer de Poids (DI-POI)</h1>
+    <p>CRMEF Inezgane · EPS · Aide à la décision pédagogique · L'outil ne produit pas de note</p>
+  </div>
+  <button class="home-btn" onclick="goStep(1)">🏠 Accueil</button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ Mode clair</button>
+  <button class="tablet-toggle" id="tablet-toggle" onclick="toggleTabletMode()" title="Mode saisie tablette terrain">📱 Tablette</button>
+  <div class="print-menu-wrap" id="print-menu-wrap">
+    <button class="print-btn" onclick="togglePrintMenu()">🖨 Imprimer ▾</button>
+    <div class="print-menu" id="print-menu">
+      <div class="print-menu-title">Imprimer la page actuelle</div>
+      <button class="print-menu-item" onclick="imprimerPage()"><span class="pm-icon">🖨</span> Page courante</button>
+      <div class="print-menu-sep"></div>
+      <div class="print-menu-title">Imprimer une section</div>
+      <button class="print-menu-item" onclick="imprimerSection(1)"><span class="pm-icon">📋</span> ① Diagnostic</button>
+      <button class="print-menu-item" onclick="imprimerSection(2)"><span class="pm-icon">🎯</span> ② Axes prioritaires</button>
+      <button class="print-menu-item" onclick="imprimerSection(3)"><span class="pm-icon">⚙️</span> ③ Paramétrage</button>
+      <button class="print-menu-item" onclick="imprimerSection(4)"><span class="pm-icon">📅</span> ④ Planification</button>
+      <button class="print-menu-item" onclick="imprimerSection(5)"><span class="pm-icon">📊</span> ⑤ Comparaison</button>
+      <div class="print-menu-sep"></div>
+      <button class="print-menu-item" onclick="imprimerTout()"><span class="pm-icon">📄</span> Rapport complet</button>
+    </div>
+  </div>
+</header>
+
+<div class="steps-bar">
+  <div class="step-item active" id="si1">① Diagnostic</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si2">② Axes prioritaires</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si3">③ Paramétrage</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si4">④ Planification</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si5">⑤ Comparaison</div>
+</div>
+
+<!-- BARRE GESTION CLASSES -->
+<div class="classes-bar" id="classes-bar">
+  <span class="cb-label">📚 Classes :</span>
+  <div id="classes-tabs"></div>
+  <button class="classe-tab add-btn" onclick="ajouterClasse()">+ Nouvelle classe</button>
+</div>
+
+<main>
+
+<!-- ===== ÉTAPE 1 ===== -->
+<div class="section active" id="step1">
+
+  <div class="card">
+    <h2>📋 Saisie des données élèves</h2>
+
+    <!-- Import CSV -->
+    <div class="import-zone" onclick="document.getElementById('csv-input').click()">
+      <p>📂 Importer un fichier CSV terrain (format ADP 2026)</p>
+      <p style="font-size:11px;margin-top:4px;">Format accepté : <strong>Nom_Eleve · TENUE · TRANS · EQUIL · PERF</strong> — séparateur <code>Tab</code>, <code>;</code> ou <code>,</code> — parenthèses (A) nettoyées automatiquement</p>
+    </div>
+    <input type="file" id="csv-input" accept=".csv,.txt" onchange="importCSV(event)">
+    <div id="import-msg"></div>
+
+    <!-- Manual entry -->
+    <div class="form-header">
+      <span>#</span><span>Prénom (obligatoire)</span>
+      <span>OBS-01<br><small>Tenue</small></span>
+      <span>OBS-02<br><small>Translation</small></span>
+      <span>OBS-03<br><small>Équilibre</small></span>
+      <span>PERF<br><small>en mètres</small></span>
+      <span></span>
+    </div>
+    <div id="rows-container"></div>
+
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="addRow()">+ Ajouter un élève</button>
+      <button class="btn btn-secondary" onclick="clearForm()">🗑 Vider</button>
+      <button class="btn btn-primary" onclick="analyser()">▶ Analyser la classe</button>
+      <button class="btn btn-secondary" onclick="exportCSV()" id="btn-export" style="display:none;">⬇ Export CSV</button>
+    </div>
+    <div id="form-err"></div>
+
+    <div class="alert alert-info" style="margin-top:14px;">
+      <strong>Légende :</strong> Saisir une valeur 0-10 OU le code lettre A (=3), B (=6), C (=9) par observable.
+      <br><strong>Seuils :</strong> Profil A &lt; 5,0 · Profil B entre 5,0 et 7,4 · Profil C ≥ 7,5
+    </div>
+  </div>
+
+  <!-- Results step 1 -->
+  <div id="results1" style="display:none;">
+
+    <div class="card">
+      <h2>📊 Bilan de classe</h2>
+      <div class="stat-cards" id="stat-cards"></div>
+      <div class="obs-analysis" id="obs-analysis"></div>
+      <div class="decision-box" id="decision-box"></div>
+      <div id="groupes-besoin"></div>
+    </div>
+
+    <div class="card">
+      <h2>🗂 Tableau individuel</h2>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:8px;">👆 Cliquer sur un élève pour ouvrir sa fiche détaillée</p>
+      <div class="table-wrap">
+        <table class="data-table" id="table-individuel">
+          <thead>
+            <tr>
+              <th>Rang</th><th>Prénom</th>
+              <th>OBS-01</th><th>OBS-02</th><th>OBS-03</th>
+              <th>PERF (m)</th>
+              <th>Moy/10</th><th>/20</th>
+              <th>Profil</th><th>Profil détaillé</th>
+              <th>Lacune(s)</th><th>Axe prioritaire</th><th>SA</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-individuel" class="tbody-clickable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-success" onclick="goStep(2)">Passer à l'étape 2 — Axes prioritaires ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 2 ===== -->
+<div class="section" id="step2">
+  <div class="card">
+    <h2>🎯 Sélection des axes prioritaires</h2>
+    <div class="alert alert-warn">Sélectionnez <strong>3 ou 4 axes</strong> maximum. Les axes sont classés par pertinence selon les lacunes de votre classe.</div>
+    <div id="axes-list"></div>
+    <div id="axes-msg" style="margin-top:10px;"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(1)">‹ Retour</button>
+      <button class="btn btn-success" id="btn-step3" onclick="goStep(3)" disabled>Paramétrer le cycle — Étape 3 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 3 ===== -->
+<div class="section" id="step3">
+  <div class="card">
+    <h2>⚙️ Paramétrage du cycle</h2>
+    <h3>Nombre de séances</h3>
+    <div class="slider-wrap">
+      <input type="range" id="slider-seances" min="6" max="10" value="8" oninput="updateSlider()">
+      <div class="slider-labels">
+        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+      </div>
+    </div>
+    <div class="slider-display" id="slider-display"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(2)">‹ Retour</button>
+      <button class="btn btn-success" onclick="goStep(4)">Générer la planification — Étape 4 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 4 ===== -->
+<div class="section" id="step4">
+  <div class="card">
+    <h2>📅 Planification dynamique du cycle</h2>
+    <div id="timeline-progression"></div>
+    <div id="planning-content"></div>
+    <div id="cycle-summary"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(3)">‹ Retour</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-success" onclick="goStep(5)">Comparaison avant/après — Étape 5 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 5 ===== -->
+<div class="section" id="step5">
+  <div class="card">
+    <h2>📊 Comparaison avant / après cycle</h2>
+    <div class="alert alert-info">Importez deux fichiers CSV ADP 2026 : un relevé <strong>avant</strong> le cycle et un relevé <strong>après</strong>. L'outil calcule l'évolution individuelle et collective.</div>
+    <div class="comp-zone">
+      <div class="comp-drop" id="comp-drop-avant" onclick="document.getElementById('comp-csv-avant').click()">
+        <div class="comp-icon">📂</div>
+        <div class="comp-title">Fichier AVANT</div>
+        <p>Relevé de début de cycle</p>
+        <p id="comp-avant-name" style="color:var(--green);font-weight:700;margin-top:6px;"></p>
+      </div>
+      <div class="comp-drop" id="comp-drop-apres" onclick="document.getElementById('comp-csv-apres').click()">
+        <div class="comp-icon">📂</div>
+        <div class="comp-title">Fichier APRÈS</div>
+        <p>Relevé de fin de cycle</p>
+        <p id="comp-apres-name" style="color:var(--green);font-weight:700;margin-top:6px;"></p>
+      </div>
+    </div>
+    <input type="file" id="comp-csv-avant" accept=".csv,.txt" style="display:none" onchange="chargerCompCSV(event,'avant')">
+    <input type="file" id="comp-csv-apres" accept=".csv,.txt" style="display:none" onchange="chargerCompCSV(event,'apres')">
+    <div id="comp-msg"></div>
+    <div id="comp-results"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(4)">‹ Retour</button>
+      <button class="btn btn-primary" onclick="lancerComparaison()" id="btn-comparer" disabled>🔍 Lancer la comparaison</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===================================================================
+// RÉFÉRENTIEL PÉDAGOGIQUE — ADP 2026 — Lancer de Poids DI-POI
+// Source : fichiers joints P1, P2, P3, TD2
+// ===================================================================
+
+var SEUIL_C = 7.5;
+var SEUIL_B = 5.0;
+
+function codeVersVal(code) {
+  var c = String(code).trim().toUpperCase();
+  if (c === 'A') return 3;
+  if (c === 'B') return 6;
+  if (c === 'C') return 9;
+  var n = parseFloat(c.replace(',', '.'));
+  if (!isNaN(n) && n >= 0 && n <= 10) return n;
+  return null;
+}
+
+function valVersProfil(v) {
+  if (v >= SEUIL_C) return 'C';
+  if (v >= SEUIL_B) return 'B';
+  return 'A';
+}
+
+var OBS_NOMS = ['OBS-01 Tenue du poids', 'OBS-02 Translation', 'OBS-03 Équilibre/Explosivité'];
+
+var AXES = [
+  {
+    id: 1,
+    titre: "AXE 1 — Construction de la translation dynamique et fixation du poids au cou",
+    priorite: "HAUTE",
+    obs: 1,
+    sa: [
+      {
+        nom: "SA 1.1 — Marche de profil avec engin au cou",
+        seances: "Séances 1-2",
+        groupeA: {
+          sa: "SA 1.1 Marche de profil",
+          consigne: "Se déplacer latéralement en maintenant le poids au cou-épaule sans le lâcher.",
+          critere: "Le poids reste en contact avec le cou pendant toute la marche."
+        },
+        groupeB: {
+          sa: "SA 1.1 Marche de profil (variante appuis)",
+          consigne: "Marche latérale avec poids cou-épaule, regard vers le secteur de jet.",
+          critere: "Orientation de profil maintenue sur au moins 5 mètres."
+        },
+        groupeC: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "Réaliser 2 pas chassés avec poids calé, enchaîner directement le jet.",
+          critere: "Absence d'arrêt entre la marche et le départ du jet."
+        },
+        indicatif: "Vérifier que l'élève oriente spontanément son épaule dominante en arrière lors de la prise en main."
+      },
+      {
+        nom: "SA 1.2 — Pas chassés de profil avec enchaînement guidé",
+        seances: "Séances 3-4",
+        groupeA: {
+          sa: "SA 1.1 Marche de profil",
+          consigne: "Répéter la marche de profil avec feedback visuel : regarder ses pieds restent en ligne.",
+          critere: "Les appuis restent parallèles à la direction de jet."
+        },
+        groupeB: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "2 pas chassés dans le couloir, marquer un appui arrière avant le jet.",
+          critere: "L'appui arrière est clairement visible avant l'impulsion."
+        },
+        groupeC: {
+          sa: "SA 1.3 Translation complète",
+          consigne: "Translation 2-3 appuis depuis la zone arrière, jet sans rupture.",
+          critere: "La distance mesurée est supérieure à la distance sans translation."
+        },
+        indicatif: "Observer si l'élève choisit spontanément le couloir latéral dans au moins 2 lancers sur 3."
+      },
+      {
+        nom: "SA 1.3 — Translation complète avec départ sur ligne arrière",
+        seances: "Séances 5-6",
+        groupeA: {
+          sa: "SA 1.2 Pas chassés guidés",
+          consigne: "2 pas chassés avec signal sonore à l'appui arrière.",
+          critere: "L'appui arrière est posé avant que le bras commence à pousser."
+        },
+        groupeB: {
+          sa: "SA 1.3 Translation complète",
+          consigne: "Enchaîner translation et jet depuis la zone arrière, sans marquer d'arrêt.",
+          critere: "L'observateur ne perçoit pas d'interruption entre translation et impulsion."
+        },
+        groupeC: {
+          sa: "SA 1.3 Translation avec mesure",
+          consigne: "3 essais officiels : mesurer la distance, noter le code OBS-02.",
+          critere: "Code OBS-02 évalué à C (translation dynamique, retard du bras efficace)."
+        },
+        indicatif: "Vérifier que la translation est initiée sans que le bras ne commence à pousser prématurément."
+      }
+    ]
+  },
+  {
+    id: 2,
+    titre: "AXE 2 — Organisation de la poussée des jambes et orientation de l'énergie",
+    priorite: "MOYENNE",
+    obs: 2,
+    sa: [
+      {
+        nom: "SA 2.1 — Extension complète depuis appui fixe",
+        seances: "Séances 5-6",
+        groupeA: {
+          sa: "SA 2.1 Extension depuis appui fixe",
+          consigne: "Position basse, poids au cou : pousser les jambes-tronc-bras en une seule chaîne.",
+          critere: "Le talon arrière se décolle du sol avant la fin du jet."
+        },
+        groupeB: {
+          sa: "SA 2.1 Extension avec cible visuelle",
+          consigne: "Même exercice avec une cible à 45° devant, orienter le poids vers la cible.",
+          critere: "Le poids passe au-dessus de la cible (corde ou repère)."
+        },
+        groupeC: {
+          sa: "SA 2.2 Translation + extension avec cible",
+          consigne: "Enchaîner translation (Axe 1 acquis) et extension vers cible haute.",
+          critere: "Orientation du jet au-dessus de la corde, rétablissement sans chute."
+        },
+        indicatif: "Observer si l'élève initie la poussée par les jambes avant d'engager le bras."
+      },
+      {
+        nom: "SA 2.2 — Translation + extension avec cible haute",
+        seances: "Séances 7-8",
+        groupeA: {
+          sa: "SA 2.1 Extension depuis appui fixe",
+          consigne: "Extension jambes-tronc-bras depuis position statique, 5 répétitions.",
+          critere: "Extension perceptible du corps de bas en haut avant le jet."
+        },
+        groupeB: {
+          sa: "SA 2.2 Translation + cible",
+          consigne: "Cible placée à 45°, enchaîner translation + extension vers la cible.",
+          critere: "Le jet dépasse la hauteur de la corde (repère à 2m)."
+        },
+        groupeC: {
+          sa: "SA 2.2 Extension + rétablissement",
+          consigne: "Extension totale suivie d'un changement d'appui maîtrisé.",
+          critere: "Rétablissement arrière sans sortie de zone ni perte d'équilibre."
+        },
+        indicatif: "Vérifier que l'élève maintient l'équilibre en fin de jet dans au moins 2 essais sur 3."
+      }
+    ]
+  },
+  {
+    id: 3,
+    titre: "AXE 3 — Liaison élan-frappe sans rupture et rétablissement maîtrisé",
+    priorite: "CONSOLIDATION",
+    obs: 0,
+    sa: [
+      {
+        nom: "SA 3.1 — Geste complet avec consigne de continuité",
+        seances: "Séances 9-10",
+        groupeA: {
+          sa: "SA 3.1 Geste complet continuité",
+          consigne: "Réaliser le geste complet. Consigne unique : ne jamais marquer d'arrêt.",
+          critere: "Un pair ne perçoit aucun arrêt entre la translation et le jet."
+        },
+        groupeB: {
+          sa: "SA 3.1 Observation par paire",
+          consigne: "Un pair note la présence ou l'absence d'arrêt (la distance est secondaire).",
+          critere: "0 arrêt observé sur 3 essais consécutifs."
+        },
+        groupeC: {
+          sa: "SA 3.2 Geste complet + mesure",
+          consigne: "3 essais officiels notés, critères N2-3 et N2-4 évalués.",
+          critere: "Code C sur OBS-01, OBS-02 et OBS-03 en fin de bilan."
+        },
+        indicatif: "Vérifier que la liaison élan-frappe est fluide : pas d'interruption perceptible par l'observateur."
+      },
+      {
+        nom: "SA 3.2 — Geste complet avec rétablissement contrôlé et mesure",
+        seances: "Séances 11-12",
+        groupeA: {
+          sa: "SA 3.1 Continuité guidée",
+          consigne: "Réaliser le geste complet avec décompte sonore pour chaque phase.",
+          critere: "Les phases s'enchaînent dans l'ordre : translation > appui > extension > jet."
+        },
+        groupeB: {
+          sa: "SA 3.2 Mesure + codage",
+          consigne: "3 essais officiels : mesurer la distance, noter OBS-01, OBS-02, OBS-03.",
+          critere: "Au moins 2 observables codés B ou C sur les 3 essais."
+        },
+        groupeC: {
+          sa: "SA 3.2 Évaluation formative",
+          consigne: "Bilan final : codage OBS-01/02/03, mesure de distance, rétablissement.",
+          critere: "Rétablissement sans sortie de zone. Distance > 7m (Profil C Performance)."
+        },
+        indicatif: "(Dernière séance — évaluation formative ou tournoi officiel)"
+      }
+    ]
+  }
+];
+
+function getSArecommandee(profil, lacuneObs) {
+  if (profil === 'A') {
+    if (lacuneObs === 1) return "SA 1.1 — Marche de profil avec engin au cou";
+    if (lacuneObs === 2) return "SA 2.1 — Extension depuis appui fixe";
+    return "SA 1.1 — Marche de profil";
+  }
+  if (profil === 'B') {
+    if (lacuneObs === 1) return "SA 1.2 — Pas chassés de profil guidés";
+    if (lacuneObs === 2) return "SA 2.2 — Translation + extension avec cible";
+    return "SA 3.1 — Geste complet avec continuité";
+  }
+  return "SA 3.2 — Geste complet avec rétablissement et mesure";
+}
+
+function getAxePersonnalise(lacunes) {
+  if (!lacunes || lacunes.length === 0) return "Approfondissement — Liaison élan-frappe et rétablissement (AXE 3)";
+  var l = lacunes[0];
+  if (l.obs === 1) return "AXE 1 prioritaire — Construire la translation dynamique et fixer le poids au cou";
+  if (l.obs === 2) return "AXE 2 prioritaire — Organiser la poussée des jambes et orienter l'énergie verticalement";
+  if (l.obs === 0) return "AXE 3 prioritaire — Assurer la liaison élan-frappe et le rétablissement maîtrisé";
+  return "AXE 1 — Fondamentaux de la translation";
+}
+
+var eleves = [];
+var axesSelectionnes = [];
+var nbSeances = 8;
+
+function addRow(nom, v1, v2, v3, perf) {
+  var container = document.getElementById('rows-container');
+  var idx = container.children.length + 1;
+  var div = document.createElement('div');
+  div.className = 'student-row';
+  div.innerHTML =
+    '<span class="row-num">' + idx + '</span>' +
+    '<input type="text"   placeholder="Prénom"         value="' + (nom  || '') + '">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v1   !== undefined ? v1   : '') + '" data-obs="1">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v2   !== undefined ? v2   : '') + '" data-obs="2">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v3   !== undefined ? v3   : '') + '" data-obs="3">' +
+    '<input type="number" placeholder="ex: 7.45"       value="' + (perf !== undefined && perf !== '' ? perf : '') + '" ' +
+      'step="0.01" min="0" max="30" data-obs="perf" ' +
+      'oninput="colorerPerf(this)">' +
+    '<button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" ' +
+      'onclick="this.parentElement.remove();renumRows()">✕</button>';
+  container.appendChild(div);
+  if (perf !== undefined && perf !== '') {
+    colorerPerf(div.querySelector('input[data-obs="perf"]'));
+  }
+}
+
+function renumRows() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  rows.forEach(function(r, i) { r.querySelector('.row-num').textContent = i + 1; });
+}
+
+function clearForm() {
+  document.getElementById('rows-container').innerHTML = '';
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('btn-export').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  eleves = [];
+  for (var i = 0; i < 5; i++) addRow();
+}
+
+for (var i = 0; i < 5; i++) addRow();
+
+function importCSV(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  var lines = text.split(/\r?\n/);
+  var headerIdx = -1;
+
+  for (var i = 0; i < lines.length; i++) {
+    var low = lines[i].toLowerCase();
+    if (low.indexOf('nom et prenom') > -1 ||
+        low.indexOf('nom_eleve')     > -1 ||
+        low.indexOf('prenom')        > -1 ||
+        low.indexOf('nom')           > -1) {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  if (headerIdx < 0) {
+    showImportMsg("Erreur : aucune ligne d'en-tête trouvée. Colonnes attendues : Nom et Prenom ; TENUE ; TRANS ; EQUIL ; PERF", 'err');
+    return;
+  }
+
+  var headerLine = lines[headerIdx];
+  var sep = headerLine.indexOf('\t') > -1 ? '\t'
+          : headerLine.indexOf(';')  > -1 ? ';'
+          : ',';
+
+  var headers = lines[headerIdx].split(sep).map(function(h) {
+    return h.trim().replace(/"/g, '').toLowerCase();
+  });
+
+  function findCol(patterns) {
+    for (var p = 0; p < patterns.length; p++) {
+      for (var h = 0; h < headers.length; h++) {
+        if (headers[h].indexOf(patterns[p].toLowerCase()) > -1) return h;
+      }
+    }
+    return -1;
+  }
+
+  var nomCol  = findCol(['nom et prenom', 'nom_eleve', 'prenom', 'nom']);
+  var obs1Col = findCol(['tenue', 'obs01_tenue', 'obs-01', 'obs01', 'obs1']);
+  var obs2Col = findCol(['trans',  'obs02_trans', 'obs-02', 'obs02', 'obs2']);
+  var obs3Col = findCol(['equil',  'obs03_equil', 'obs-03', 'obs03', 'obs3']);
+  var perfCol = findCol(['perf']);
+
+  var manquantes = [];
+  if (obs1Col < 0) manquantes.push('TENUE');
+  if (obs2Col < 0) manquantes.push('TRANS');
+  if (obs3Col < 0) manquantes.push('EQUIL');
+  if (manquantes.length > 0) {
+    showImportMsg("Attention : colonne(s) introuvable(s) : " + manquantes.join(', ') + ". Vérifier l'en-tête.", 'warn');
+  }
+
+  function nettoyerObs(val) {
+    return val.trim().replace(/"/g, '').replace(/[()]/g, '').trim().toUpperCase();
+  }
+
+  function nettoyerPerf(val) {
+    return val.trim().replace(/"/g, '').replace(',', '.').trim();
+  }
+
+  function estColonneNumerique(colIdx) {
+    var count = 0, numeric = 0;
+    for (var j = headerIdx + 1; j < Math.min(headerIdx + 6, lines.length); j++) {
+      var l = lines[j].trim();
+      if (!l) continue;
+      count++;
+      var val = l.split(sep)[colIdx];
+      if (val !== undefined && /^\d+$/.test(val.trim())) numeric++;
+    }
+    return count > 0 && numeric === count;
+  }
+
+  if (nomCol >= 0 && estColonneNumerique(nomCol)) {
+    nomCol = nomCol + 1;
+  }
+
+  document.getElementById('rows-container').innerHTML = '';
+  var imported = 0;
+  var ignored  = 0;
+
+  for (var j = headerIdx + 1; j < lines.length; j++) {
+    var line = lines[j].trim();
+    if (!line) { ignored++; continue; }
+    if (line.toLowerCase().indexOf('bilan_classe') > -1) { ignored++; continue; }
+
+    var cols = line.split(sep);
+    if (cols.length < 2) { ignored++; continue; }
+
+    var nom = nomCol >= 0 ? cols[nomCol] : cols[0];
+    nom = nom ? nom.trim().replace(/"/g, '') : '';
+    if (!nom) { ignored++; continue; }
+
+    var v1 = obs1Col >= 0 ? nettoyerObs(cols[obs1Col] || '') : '';
+    var v2 = obs2Col >= 0 ? nettoyerObs(cols[obs2Col] || '') : '';
+    var v3 = obs3Col >= 0 ? nettoyerObs(cols[obs3Col] || '') : '';
+    var perf = perfCol >= 0 ? nettoyerPerf(cols[perfCol] || '') : '';
+
+    addRow(nom, v1, v2, v3, perf);
+    imported++;
+  }
+
+  var msg = imported + " élève(s) importé(s) avec succès.";
+  if (ignored > 0) msg += " " + ignored + " ligne(s) ignorée(s) (vides ou métadonnées).";
+  showImportMsg(msg, imported > 0 ? 'info' : 'err');
+}
+
+function showImportMsg(msg, type) {
+  document.getElementById('import-msg').innerHTML =
+    '<div class="alert alert-' + type + '">' + msg + '</div>';
+}
+
+function analyser() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var donnees = [];
+  var erreurs = 0;
+
+  rows.forEach(function(row, idx) {
+    var nomInput  = row.querySelector('input[type=text]');
+    var obs1Input = row.querySelector('input[data-obs="1"]');
+    var obs2Input = row.querySelector('input[data-obs="2"]');
+    var obs3Input = row.querySelector('input[data-obs="3"]');
+    var perfInput = row.querySelector('input[data-obs="perf"]');
+
+    var nom = nomInput ? nomInput.value.trim() : '';
+    if (!nom) return;
+
+    var v1 = codeVersVal(obs1Input ? obs1Input.value : '');
+    var v2 = codeVersVal(obs2Input ? obs2Input.value : '');
+    var v3 = codeVersVal(obs3Input ? obs3Input.value : '');
+    var perf = perfInput ? perfInput.value.trim().replace(',', '.') : '';
+
+    if (obs1Input) obs1Input.classList.toggle('err', v1 === null);
+    if (obs2Input) obs2Input.classList.toggle('err', v2 === null);
+    if (obs3Input) obs3Input.classList.toggle('err', v3 === null);
+
+    if (v1 === null || v2 === null || v3 === null) { erreurs++; return; }
+
+    donnees.push({ nom: nom, obs: [v1, v2, v3], perf: perf });
+  });
+
+  if (erreurs > 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">' + erreurs + ' ligne(s) avec données invalides. Corriger avant d\'analyser.</div>';
+    return;
+  }
+  if (donnees.length === 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">Aucune donnée valide. Saisir au moins un élève.</div>';
+    return;
+  }
+
+  document.getElementById('form-err').innerHTML = '';
+
+  donnees.forEach(function(e) {
+    var moy = (e.obs[0] + e.obs[1] + e.obs[2]) / 3;
+    e.moy = Math.round(moy * 10) / 10;
+    e.sur20 = Math.round(moy * 2 * 10) / 10;
+    e.profil = valVersProfil(moy);
+    e.profilDetail = e.obs.map(function(v) { return valVersProfil(v); }).join(' / ');
+
+    var lacunes = [];
+    e.obs.forEach(function(v, i) {
+      if (valVersProfil(v) === 'A') lacunes.push({ obs: i, val: v });
+    });
+    lacunes.sort(function(a, b) { return a.val - b.val; });
+    e.lacunes = lacunes;
+
+    e.axe = getAxePersonnalise(lacunes);
+
+    var lacuneObs = lacunes.length > 0 ? lacunes[0].obs : -1;
+    e.sa = getSArecommandee(e.profil, lacuneObs);
+  });
+
+  var sorted = donnees.slice().sort(function(a, b) { return b.moy - a.moy; });
+  var rang = 1;
+  sorted.forEach(function(e, i) {
+    if (i > 0 && sorted[i].moy < sorted[i-1].moy) rang = i + 1;
+    e.rang = rang;
+  });
+  donnees.forEach(function(e) {
+    var found = sorted.find(function(s) { return s.nom === e.nom && s.moy === e.moy; });
+    if (found) e.rang = found.rang;
+  });
+
+  eleves = donnees;
+  afficherResultats();
+}
+
+function afficherResultats() {
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+  var moyClasse = eleves.reduce(function(s, e) { return s + e.moy; }, 0) / n;
+  moyClasse = Math.round(moyClasse * 10) / 10;
+
+  document.getElementById('stat-cards').innerHTML =
+    '<div class="stat-card A"><div class="val">' + nA + '</div><div class="lbl">Profil A (débutant)<br>' + Math.round(nA/n*100) + '%</div></div>' +
+    '<div class="stat-card B"><div class="val">' + nB + '</div><div class="lbl">Profil B (intermédiaire)<br>' + Math.round(nB/n*100) + '%</div></div>' +
+    '<div class="stat-card C"><div class="val">' + nC + '</div><div class="lbl">Profil C (avancé)<br>' + Math.round(nC/n*100) + '%</div></div>' +
+    '<div class="stat-card avg"><div class="val">' + moyClasse + '</div><div class="lbl">Moyenne classe /10<br>' + Math.round(moyClasse*2*10)/10 + ' / 20</div></div>';
+
+  var obsHtml = '';
+  for (var i = 0; i < 3; i++) {
+    var moyObs = eleves.reduce(function(s, e) { return s + e.obs[i]; }, 0) / n;
+    moyObs = Math.round(moyObs * 10) / 10;
+    var cls, statut, sa;
+    if (moyObs < SEUIL_B) {
+      cls = 'lacune';
+      statut = '⚠️ Lacune collective — SA prioritaire';
+      sa = i === 1 ? "SA 1.1 — Marche de profil" : i === 2 ? "SA 2.1 — Extension appui fixe" : "SA 3.1 — Geste complet";
+    } else if (moyObs < SEUIL_C) {
+      cls = 'cours';
+      statut = '🔄 En cours — Consolider';
+      sa = i === 1 ? "SA 1.2 — Pas chassés guidés" : i === 2 ? "SA 2.2 — Translation + cible" : "SA 3.1 — Continuité";
+    } else {
+      cls = 'bon';
+      statut = '✅ Bon niveau — Approfondir';
+      sa = "SA 3.2 — Geste complet + mesure";
+    }
+    obsHtml +=
+      '<div class="obs-card ' + cls + '">' +
+        '<div class="obs-title">' + OBS_NOMS[i] + '</div>' +
+        '<div class="obs-val">' + moyObs + '/10</div>' +
+        '<div class="obs-status">' + statut + '</div>' +
+        '<div style="font-size:11px;color:var(--text2);margin-top:4px;">' + sa + '</div>' +
+      '</div>';
+  }
+  document.getElementById('obs-analysis').innerHTML = obsHtml;
+
+  var dominant, msg;
+  if (nA >= nB && nA >= nC) {
+    dominant = 'A'; msg = '🔴 Classe débutante — Priorité fondamentaux (translation + tenue du poids)';
+  } else if (nC >= nA && nC >= nB) {
+    dominant = 'C'; msg = '🟢 Classe avancée — Approfondissement et tutorat (liaison élan-frappe)';
+  } else {
+    dominant = 'B'; msg = '🟡 Classe intermédiaire — Différenciation A/B active recommandée';
+  }
+  document.getElementById('decision-box').innerHTML =
+    '<p><strong>Décision dominante automatique :</strong><br>' + msg + '</p>' +
+    '<p style="font-size:11px;color:var(--text2);margin-top:8px;">⚠️ Indicatif — La décision finale reste à l\'enseignant.</p>';
+
+  var groupesHtml = '<h3 style="margin-bottom:10px;">Groupes de besoin</h3>';
+  ['A','B','C'].forEach(function(p) {
+    var gEleves = eleves.filter(function(e) { return e.profil === p; });
+    if (gEleves.length === 0) return;
+    var saG = p === 'A' ? "SA 1.1 — Marche de profil avec engin au cou" :
+              p === 'B' ? "SA 1.2/2.2 — Différenciation selon observable lacunaire" :
+                          "SA 3.2 — Geste complet avec rétablissement et mesure";
+    groupesHtml +=
+      '<div class="groupe-need">' +
+        '<span class="badge badge-' + p + '">' + p + '</span>' +
+        '<div>' +
+          '<strong>' + gEleves.length + ' élève(s)</strong> — ' + saG +
+          '<div style="font-size:11px;color:var(--text2);">' +
+            gEleves.map(function(e) { return e.nom; }).join(', ') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('groupes-besoin').innerHTML = groupesHtml;
+
+  var sorted = eleves.slice().sort(function(a, b) { return a.rang - b.rang; });
+  var tbody = '';
+  sorted.forEach(function(e) {
+    var lacStr = e.lacunes.length === 0 ? 'Aucune lacune identifiée' :
+      e.lacunes.map(function(l, i) {
+        return 'L' + (i+1) + ' — ' + OBS_NOMS[l.obs] + ' : ' + l.val + '/10';
+      }).join('<br>');
+    tbody +=
+      '<tr class="prof-' + e.profil + '" onclick="ouvrirFiche(\'' + e.nom.replace(/'/g, "\\'") + '\')" title="Cliquer pour ouvrir la fiche">' +
+        '<td>' + e.rang + '</td>' +
+        '<td><strong>' + e.nom + '</strong></td>' +
+        '<td>' + e.obs[0] + '</td>' +
+        '<td>' + e.obs[1] + '</td>' +
+        '<td>' + e.obs[2] + '</td>' +
+        '<td><strong>' + (e.perf !== '' && e.perf !== undefined ? e.perf + ' m' : '—') + '</strong></td>' +
+        '<td><strong>' + e.moy + '</strong></td>' +
+        '<td>' + e.sur20 + '</td>' +
+        '<td><span class="badge badge-' + e.profil + '">' + e.profil + '</span></td>' +
+        '<td><small>' + e.profilDetail + '</small></td>' +
+        '<td><small>' + lacStr + '</small></td>' +
+        '<td><small>' + e.axe.substring(0, 60) + '...</small></td>' +
+        '<td><small>' + e.sa.substring(0, 50) + '...</small></td>' +
+      '</tr>';
+  });
+  document.getElementById('tbody-individuel').innerHTML = tbody;
+
+  document.getElementById('results1').style.display = 'block';
+  document.getElementById('btn-export').style.display = 'inline-flex';
+}
+
+function goStep(n) {
+  if (n === 2) buildAxes();
+  if (n === 3) { updateSlider(); }
+  if (n === 4) buildPlanning();
+  if (n === 5) { /* comparaison ready */ }
+
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('step' + n).classList.add('active');
+
+  document.querySelectorAll('.step-item').forEach(function(s, i) {
+    s.classList.remove('active', 'done');
+    if (i + 1 === n) s.classList.add('active');
+    else if (i + 1 < n) s.classList.add('done');
+  });
+
+  if (n <= 2) { axesSelectionnes = []; }
+  if (n <= 3) { nbSeances = 8; document.getElementById('slider-seances').value = 8; }
+
+  window.scrollTo(0, 0);
+}
+
+function buildAxes() {
+  var n = eleves.length;
+  var axesData = AXES.map(function(axe) {
+    var lacPct = Math.round(
+      eleves.filter(function(e) { return valVersProfil(e.obs[axe.obs]) === 'A'; }).length / n * 100
+    );
+    var moyObs = Math.round(eleves.reduce(function(s, e) { return s + e.obs[axe.obs]; }, 0) / n * 10) / 10;
+    return { axe: axe, pct: lacPct, moy: moyObs };
+  });
+  axesData.sort(function(a, b) { return b.pct - a.pct; });
+
+  var html = '';
+  axesData.forEach(function(d, idx) {
+    var prioriteClass = d.axe.priorite === 'HAUTE' ? 'var(--red)' :
+                        d.axe.priorite === 'MOYENNE' ? 'var(--orange)' : 'var(--green)';
+    html +=
+      '<div class="axe-item" id="axe-item-' + d.axe.id + '" onclick="toggleAxe(' + d.axe.id + ')">' +
+        '<input type="checkbox" id="axe-chk-' + d.axe.id + '" onchange="updateAxeSel()" onclick="event.stopPropagation()">' +
+        '<div style="flex:1;">' +
+          '<div style="float:right;font-size:20px;font-weight:800;color:var(--accent2);">' + d.pct + '%</div>' +
+          '<div class="axe-title">' + d.axe.titre + '</div>' +
+          '<div class="axe-meta">' +
+            'Priorité : <span style="color:' + prioriteClass + ';font-weight:700;">' + d.axe.priorite + '</span> · ' +
+            'Observable lié : ' + OBS_NOMS[d.axe.obs] + ' · Moy. classe : ' + d.moy + '/10<br>' +
+            'SA associées : ' + d.axe.sa.map(function(s) { return s.nom.split(' — ')[0]; }).join(' · ') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('axes-list').innerHTML = html;
+  axesSelectionnes = [];
+  updateAxeSel();
+}
+
+function toggleAxe(id) {
+  var chk = document.getElementById('axe-chk-' + id);
+  chk.checked = !chk.checked;
+  updateAxeSel();
+}
+
+function updateAxeSel() {
+  axesSelectionnes = [];
+  AXES.forEach(function(a) {
+    var chk = document.getElementById('axe-chk-' + a.id);
+    if (chk && chk.checked) axesSelectionnes.push(a.id);
+  });
+
+  if (axesSelectionnes.length >= 4) {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk && !chk.checked) {
+        chk.disabled = true;
+        if (item) item.style.opacity = '0.5';
+      }
+    });
+    document.getElementById('axes-msg').innerHTML =
+      '<div class="alert alert-warn">Maximum 4 axes atteint.</div>';
+  } else {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk) { chk.disabled = false; }
+      if (item) item.style.opacity = '1';
+    });
+    document.getElementById('axes-msg').innerHTML = '';
+  }
+
+  AXES.forEach(function(a) {
+    var item = document.getElementById('axe-item-' + a.id);
+    var chk = document.getElementById('axe-chk-' + a.id);
+    if (item && chk) item.classList.toggle('selected', chk.checked);
+  });
+
+  var btn = document.getElementById('btn-step3');
+  btn.disabled = axesSelectionnes.length < 3;
+  if (axesSelectionnes.length < 3) {
+    document.getElementById('axes-msg').innerHTML =
+      '<div class="alert alert-info">Sélectionnez au moins 3 axes pour continuer.</div>';
+  }
+}
+
+var DISTRIBUTION = {
+  3: { 6: [2,2,2], 7: [2,2,3], 8: [3,2,3], 9: [3,3,3], 10: [3,4,3] },
+  4: { 6: [1,2,2,1], 7: [2,2,2,1], 8: [2,2,2,2], 9: [2,3,2,2], 10: [3,2,3,2] }
+};
+
+function updateSlider() {
+  nbSeances = parseInt(document.getElementById('slider-seances').value);
+  var nAxes = axesSelectionnes.length;
+  if (nAxes < 3) nAxes = 3;
+  if (nAxes > 4) nAxes = 4;
+
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) {
+    return AXES.find(function(a) { return a.id === id; });
+  }).filter(Boolean);
+
+  var html = '<strong>Cycle de ' + nbSeances + ' séances · ' + nAxes + ' séquences</strong><br>';
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    html += '<div style="margin-top:8px;padding:6px 10px;background:var(--surface);border-radius:6px;border-left:3px solid var(--accent);">' +
+      'Séquence ' + (i+1) + ' (' + ns + ' séance' + (ns>1?'s':'') + ') — ' +
+      (axe ? axe.titre.substring(0, 70) + '...' : '') +
+      '</div>';
+  });
+
+  document.getElementById('slider-display').innerHTML = html;
+}
+
+function buildPlanning() {
+  var nAxes = axesSelectionnes.length;
+  if (nAxes < 3) nAxes = 3;
+  if (nAxes > 4) nAxes = 4;
+
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) {
+    return AXES.find(function(a) { return a.id === id; });
+  }).filter(Boolean);
+
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+
+  var html = '';
+  var seanceGlobale = 0;
+
+  dist.forEach(function(nbS, seqIdx) {
+    var axe = axesObjs[seqIdx] || axesObjs[axesObjs.length - 1];
+    var seqNum = seqIdx + 1;
+    var objectif = seqIdx === 0 ? "Fondamentaux — tous groupes" :
+                   seqIdx === dist.length - 1 ? "Consolidation et évaluation formative" :
+                   "Différenciation A/B/C active";
+
+    html += '<div class="seq-block">' +
+      '<div class="seq-header">' +
+        'Séquence ' + seqNum + ' — ' + axe.titre.substring(0, 60) + '...' +
+        '<span style="font-size:11px;font-weight:400;">' + nbS + ' séance(s)</span>' +
+      '</div>' +
+      '<table class="seq-table">' +
+        '<tr>' +
+          '<th>Séance</th><th>Axe dominant</th><th>Objectif</th>' +
+          '<th style="color:var(--red);">Groupe A — Débutants</th>' +
+          '<th style="color:var(--orange);">Groupe B — Intermédiaires</th>' +
+          '<th style="color:var(--green);">Groupe C — Avancés</th>' +
+        '</tr>';
+
+    for (var s = 0; s < nbS; s++) {
+      seanceGlobale++;
+      var saIdx = Math.min(s, axe.sa.length - 1);
+      var saData = axe.sa[saIdx];
+      var isLast = (s === nbS - 1) && (seqIdx === dist.length - 1);
+
+      html += '<tr>' +
+        '<td style="white-space:nowrap;"><strong>S' + seanceGlobale + '</strong></td>' +
+        '<td style="font-size:11px;">' + axe.titre.split(' — ')[0] + '</td>' +
+        '<td style="font-size:11px;">' + objectif + '</td>' +
+        '<td class="grp-A">' +
+          '<div class="sa-name">' + saData.groupeA.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeA.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeA.critere + '</div>' +
+        '</td>' +
+        '<td class="grp-B">' +
+          '<div class="sa-name">' + saData.groupeB.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeB.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeB.critere + '</div>' +
+        '</td>' +
+        '<td class="grp-C">' +
+          '<div class="sa-name">' + saData.groupeC.sa + '</div>' +
+          '<div class="consigne">' + saData.groupeC.consigne + '</div>' +
+          '<div class="critere">✓ ' + saData.groupeC.critere + '</div>' +
+        '</td>' +
+      '</tr>';
+
+      if (!isLast && saData.indicatif) {
+        html += '<tr><td colspan="6">' +
+          '<div class="indicatif">📋 À observer avant la séance suivante — ' + saData.indicatif + '<br>' +
+          '<em>(Indicatif — décision de progression : vous)</em></div>' +
+          '</td></tr>';
+      }
+    }
+
+    html += '</table></div>';
+  });
+
+  document.getElementById('planning-content').innerHTML = html;
+
+  var profilDominant = nA >= nB && nA >= nC ? 'A' : nC >= nA && nC >= nB ? 'C' : 'B';
+  var profilN = profilDominant === 'A' ? nA : profilDominant === 'B' ? nB : nC;
+  var seqReval = Math.ceil(dist.length / 2);
+
+  var summaryHtml =
+    '<div class="card" style="margin-top:20px;">' +
+      '<h2>📋 Résumé du cycle</h2>' +
+      '<table class="cycle-summary">' +
+        '<tr><th>Séquence</th><th>Axes travaillés</th><th>Nb séances</th><th>Profil dominant ciblé</th></tr>';
+
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    var cible = i === 0 ? 'Tous' : i === dist.length - 1 ? 'B → C' : 'A + B';
+    summaryHtml += '<tr><td>Séquence ' + (i+1) + '</td><td>' +
+      axe.titre.substring(0, 50) + '...</td><td>' + ns + '</td><td>' + cible + '</td></tr>';
+  });
+
+  summaryHtml += '</table>' +
+    '<div class="reco-box">' +
+      'Ce cycle de <strong>' + nbSeances + ' séances</strong> cible <strong>' + nAxes + ' axes prioritaires</strong>. ' +
+      'Profil le plus concerné : <strong>' + profilDominant + ' (' + profilN + ' élèves · ' + Math.round(profilN/n*100) + '%)</strong>. ' +
+      'Réévaluer après la séquence <strong>' + seqReval + '</strong> avec une nouvelle collecte terrain.' +
+      '<br><br><em>⚠️ L\'outil ne produit pas de note. La décision finale reste toujours à l\'enseignant.</em>' +
+    '</div>' +
+    '</div>';
+
+  document.getElementById('cycle-summary').innerHTML = summaryHtml;
+}
+
+function exportCSV() {
+  if (eleves.length === 0) { alert("Aucune donnée à exporter. Lancez d'abord l'analyse."); return; }
+
+  var BOM = '\uFEFF';
+  var cols = ['Prénom','PERF (m)','Code OBS-01','OBS-01','Code OBS-02','OBS-02','Code OBS-03','OBS-03',
+               'Moyenne','Sur 20','Rang','Profil global','Profil détaillé','Lacune 1','SA recommandée'];
+
+  function toCode(v) {
+    if (v >= SEUIL_C) return 'C';
+    if (v >= SEUIL_B) return 'B';
+    return 'A';
+  }
+
+  var rows = [cols.join(';')];
+  eleves.forEach(function(e) {
+    var l1 = e.lacunes.length > 0 ? OBS_NOMS[e.lacunes[0].obs] + ' : ' + e.lacunes[0].val + '/10' : 'Aucune';
+    rows.push([
+      e.nom,
+      e.perf || '',
+      toCode(e.obs[0]), e.obs[0],
+      toCode(e.obs[1]), e.obs[1],
+      toCode(e.obs[2]), e.obs[2],
+      e.moy, e.sur20, e.rang,
+      e.profil, e.profilDetail,
+      l1, e.sa
+    ].join(';'));
+  });
+
+  var d = new Date();
+  var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var blob = new Blob([BOM + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'outil_v0_POIDS_DI-POI_' + dateStr + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function colorerPerf(input) {
+  var v = parseFloat(input.value);
+  input.classList.remove('perf-low', 'perf-ok', 'perf-high');
+  if (isNaN(v) || input.value === '') return;
+  if (v < 5)       input.classList.add('perf-low');
+  else if (v < 7.5) input.classList.add('perf-ok');
+  else              input.classList.add('perf-high');
+}
+
+function toggleTheme() {
+  var body = document.body;
+  var btn = document.getElementById("theme-btn");
+  body.classList.toggle("light");
+  var isLight = body.classList.contains("light");
+  btn.textContent = isLight ? "🌙 Mode sombre" : "☀️ Mode clair";
+  localStorage.setItem('adp_theme', isLight ? 'light' : 'dark');
+}
+
+// ===================================================================
+// SAUVEGARDE LOCALE AUTOMATIQUE
+// ===================================================================
+var saveTimer = null;
+
+function sauvegarderDonnees() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var data = [];
+  rows.forEach(function(row) {
+    var nomI  = row.querySelector('input[type="text"]:not([data-obs])') || row.querySelectorAll('input')[0];
+    var obs1I = row.querySelector('input[data-obs="1"]');
+    var obs2I = row.querySelector('input[data-obs="2"]');
+    var obs3I = row.querySelector('input[data-obs="3"]');
+    var perfI = row.querySelector('input[data-obs="perf"]');
+    data.push({
+      nom:  nomI  ? nomI.value  : '',
+      obs1: obs1I ? obs1I.value : '',
+      obs2: obs2I ? obs2I.value : '',
+      obs3: obs3I ? obs3I.value : '',
+      perf: perfI ? perfI.value : ''
+    });
+  });
+  localStorage.setItem('adp_donnees', JSON.stringify(data));
+  // Afficher indicateur
+  var ind = document.getElementById('save-indicator');
+  ind.style.opacity = '1';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() { ind.style.opacity = '0'; }, 1800);
+}
+
+function restaurerDonnees() {
+  var raw = localStorage.getItem('adp_donnees');
+  if (!raw) return;
+  try {
+    var data = JSON.parse(raw);
+    if (!data || data.length === 0) return;
+    document.getElementById('rows-container').innerHTML = '';
+    data.forEach(function(d) {
+      addRow(d.nom, d.obs1, d.obs2, d.obs3, d.perf);
+    });
+    showImportMsg(data.length + ' élève(s) restauré(s) depuis la sauvegarde locale.', 'info');
+  } catch(e) {}
+}
+
+function sauvegarderNote() {
+  var nom = document.getElementById('fiche-titre').dataset.nom;
+  if (!nom) return;
+  var note = document.getElementById('fiche-notes').value;
+  var notes = JSON.parse(localStorage.getItem('adp_notes') || '{}');
+  notes[nom] = note;
+  localStorage.setItem('adp_notes', JSON.stringify(notes));
+}
+
+// Auto-save — délégation robuste sur document
+// Se déclenche sur tout input qui porte data-obs (champs du formulaire élèves)
+document.addEventListener('input', function(evt) {
+  if (evt.target && (evt.target.dataset.obs !== undefined || evt.target.closest('#rows-container'))) {
+    clearTimeout(window._autoSaveDebounce);
+    window._autoSaveDebounce = setTimeout(sauvegarderDonnees, 800);
+  }
+});
+
+// ===================================================================
+// FICHE ELEVE — MODAL
+// ===================================================================
+function ouvrirFiche(nomEleve) {
+  var e = eleves.find(function(el) { return el.nom === nomEleve; });
+  if (!e) return;
+
+  // Titre
+  var titre = document.getElementById('fiche-titre');
+  titre.textContent = '📋 ' + e.nom;
+  titre.dataset.nom = e.nom;
+
+  // Cartes observables
+  var obsNames = ['OBS-01\nTenue', 'OBS-02\nTranslation', 'OBS-03\nÉquilibre'];
+  var obsHtml = '';
+  e.obs.forEach(function(v, i) {
+    var p = valVersProfil(v);
+    obsHtml +=
+      '<div class="fiche-obs-card ' + p + '">' +
+        '<div class="foc-lbl">' + obsNames[i].replace('\n','<br>') + '</div>' +
+        '<div class="foc-val">' + v + '/10</div>' +
+        '<div style="font-size:10px;color:var(--text2);">Profil ' + p + '</div>' +
+      '</div>';
+  });
+  document.getElementById('fiche-obs').innerHTML = obsHtml;
+
+  // Détails
+  var lacStr = e.lacunes.length === 0 ? 'Aucune lacune identifiée' :
+    e.lacunes.map(function(l) { return OBS_NOMS[l.obs] + ' (' + l.val + '/10)'; }).join(', ');
+  document.getElementById('fiche-details').innerHTML =
+    '<div class="fiche-row"><span>Profil global</span><span><span class="badge badge-' + e.profil + '">' + e.profil + '</span></span></div>' +
+    '<div class="fiche-row"><span>Moyenne</span><span>' + e.moy + '/10 — ' + e.sur20 + '/20</span></div>' +
+    '<div class="fiche-row"><span>Performance</span><span>' + (e.perf ? e.perf + ' m' : '—') + '</span></div>' +
+    '<div class="fiche-row"><span>Rang classe</span><span>' + e.rang + '</span></div>' +
+    '<div class="fiche-row"><span>Lacune(s)</span><span style="font-size:12px;text-align:right;max-width:60%;">' + lacStr + '</span></div>' +
+    '<div class="fiche-row"><span>SA recommandée</span><span style="font-size:11px;text-align:right;max-width:60%;">' + e.sa + '</span></div>';
+
+  // Notes sauvegardées
+  var notes = JSON.parse(localStorage.getItem('adp_notes') || '{}');
+  document.getElementById('fiche-notes').value = notes[e.nom] || '';
+
+  // Radar
+  dessinerRadar(e.obs);
+
+  document.getElementById('modal-fiche').classList.add('open');
+}
+
+function fermerFiche(event) {
+  if (event.target === document.getElementById('modal-fiche')) {
+    document.getElementById('modal-fiche').classList.remove('open');
+  }
+}
+
+// ===================================================================
+// RADAR SVG
+// ===================================================================
+function dessinerRadar(obs) {
+  var canvas = document.getElementById('fiche-radar');
+  var ctx = canvas.getContext('2d');
+  var W = 220, H = 220, cx = 110, cy = 115, R = 80;
+  ctx.clearRect(0, 0, W, H);
+
+  var labels = ['OBS-01', 'OBS-02', 'OBS-03'];
+  var angles = [-Math.PI/2, -Math.PI/2 + (2*Math.PI/3), -Math.PI/2 + (4*Math.PI/3)];
+  var isDark = !document.body.classList.contains('light');
+  var gridColor  = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  var labelColor = isDark ? '#8b91b5' : '#5a6080';
+  var fillColor  = 'rgba(79,142,247,0.25)';
+  var strokeColor = '#4f8ef7';
+
+  // Grilles
+  [2, 4, 6, 8, 10].forEach(function(v) {
+    ctx.beginPath();
+    angles.forEach(function(a, i) {
+      var x = cx + (R * v/10) * Math.cos(a);
+      var y = cy + (R * v/10) * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Axes
+  angles.forEach(function(a) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Données
+  ctx.beginPath();
+  obs.forEach(function(v, i) {
+    var x = cx + (R * v/10) * Math.cos(angles[i]);
+    var y = cy + (R * v/10) * Math.sin(angles[i]);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Points
+  obs.forEach(function(v, i) {
+    var x = cx + (R * v/10) * Math.cos(angles[i]);
+    var y = cy + (R * v/10) * Math.sin(angles[i]);
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, 2*Math.PI);
+    ctx.fillStyle = strokeColor;
+    ctx.fill();
+  });
+
+  // Labels
+  ctx.fillStyle = labelColor;
+  ctx.font = '11px Segoe UI, sans-serif';
+  ctx.textAlign = 'center';
+  var labelR = R + 18;
+  labels.forEach(function(lbl, i) {
+    var x = cx + labelR * Math.cos(angles[i]);
+    var y = cy + labelR * Math.sin(angles[i]) + 4;
+    ctx.fillText(lbl, x, y);
+  });
+
+  // Valeurs
+  ctx.font = 'bold 12px Segoe UI, sans-serif';
+  ctx.fillStyle = strokeColor;
+  obs.forEach(function(v, i) {
+    var x = cx + (R * v/10 + 14) * Math.cos(angles[i]);
+    var y = cy + (R * v/10 + 14) * Math.sin(angles[i]) + 4;
+    ctx.fillText(v, x, y);
+  });
+}
+
+// ===================================================================
+// TIMELINE PROGRESSION — ÉTAPE 4
+// ===================================================================
+var tlEtat = {}; // { 'S1': true/false, ... }
+
+function buildTimeline(nbS) {
+  var saved = localStorage.getItem('adp_timeline');
+  if (saved) { try { tlEtat = JSON.parse(saved); } catch(e) { tlEtat = {}; } }
+  renderTimeline(nbS);
+}
+
+function renderTimeline(nbS) {
+  var done = 0;
+  for (var k in tlEtat) { if (tlEtat[k]) done++; }
+  var pct = nbS > 0 ? Math.round(done / nbS * 100) : 0;
+  var prochaine = -1;
+  for (var s = 1; s <= nbS; s++) {
+    if (!tlEtat['S' + s]) { prochaine = s; break; }
+  }
+
+  var wrap = document.createElement('div');
+  wrap.className = 'timeline-wrap';
+
+  var titre = document.createElement('h3');
+  titre.textContent = '\ud83d\udcc8 Progression du cycle';
+  wrap.appendChild(titre);
+
+  var bar = document.createElement('div');
+  bar.className = 'timeline-bar';
+  for (var s = 1; s <= nbS; s++) {
+    var key = 'S' + s;
+    var isDone = !!tlEtat[key];
+    var isCurrent = (s === prochaine);
+    var cls = isDone ? 'done' : (isCurrent ? 'current' : '');
+    var seance = document.createElement('div');
+    seance.className = 'tl-seance';
+    seance.title = isDone ? 'Marquer non r\u00e9alis\u00e9e' : 'Marquer r\u00e9alis\u00e9e';
+    seance.setAttribute('data-key', key);
+    seance.setAttribute('data-nbs', String(nbS));
+    seance.onclick = (function(k, n) { return function() { toggleSeance(k, n); }; })(key, nbS);
+    var chk = document.createElement('div');
+    chk.className = 'tl-check' + (cls ? ' ' + cls : '');
+    chk.textContent = isDone ? '\u2713' : String(s);
+    var lbl = document.createElement('div');
+    lbl.className = 'tl-lbl';
+    lbl.textContent = 'S' + s;
+    seance.appendChild(chk);
+    seance.appendChild(lbl);
+    bar.appendChild(seance);
+  }
+  wrap.appendChild(bar);
+
+  var track = document.createElement('div');
+  track.className = 'tl-progress-track';
+  var fill = document.createElement('div');
+  fill.className = 'tl-progress-fill';
+  fill.style.width = pct + '%';
+  track.appendChild(fill);
+  wrap.appendChild(track);
+
+  var stats = document.createElement('div');
+  stats.className = 'tl-stats';
+  stats.innerHTML =
+    '<span>\u2705 <strong>' + done + ' / ' + nbS + '</strong> s\u00e9ances r\u00e9alis\u00e9es</span>' +
+    '<span>\ud83d\udcca <strong>' + pct + '%</strong> du cycle accompli</span>' +
+    (prochaine > 0
+      ? '<span>\u25b6 Prochaine\u00a0: <strong>S\u00e9ance ' + prochaine + '</strong></span>'
+      : '<span>\ud83c\udf89 <strong>Cycle termin\u00e9\u00a0!</strong></span>');
+  wrap.appendChild(stats);
+
+  var container = document.getElementById('timeline-progression');
+  container.innerHTML = '';
+  container.appendChild(wrap);
+}
+function toggleSeance(key, nbS) {
+  tlEtat[key] = !tlEtat[key];
+  localStorage.setItem('adp_timeline', JSON.stringify(tlEtat));
+  renderTimeline(nbS);
+}
+
+// Patch buildPlanning pour injecter la timeline après génération
+var _origBuildPlanning = buildPlanning;
+buildPlanning = function() {
+  _origBuildPlanning();
+  buildTimeline(nbSeances);
+};
+
+// ===================================================================
+// COMPARAISON AVANT / APRÈS — ÉTAPE 5
+// ===================================================================
+var compData = { avant: null, apres: null };
+
+function chargerCompCSV(event, periode) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var elvsData = parserCSVComp(e.target.result);
+    if (!elvsData || elvsData.length === 0) {
+      afficherCompMsg('Erreur : fichier ' + periode + ' invalide ou vide.', 'err');
+      return;
+    }
+    compData[periode] = elvsData;
+    var el = document.getElementById('comp-drop-' + periode);
+    var nm = document.getElementById('comp-' + periode + '-name');
+    if (el) el.classList.add('loaded');
+    if (nm) nm.textContent = '✓ ' + file.name + ' (' + elvsData.length + ' élèves)';
+    afficherCompMsg('', 'info');
+    document.getElementById('btn-comparer').disabled = !(compData.avant && compData.apres);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parserCSVComp(text) {
+  var lines = text.split(/\r?\n/);
+  var headerIdx = -1;
+  for (var i = 0; i < lines.length; i++) {
+    var low = lines[i].toLowerCase();
+    if (low.indexOf('nom') > -1 || low.indexOf('prenom') > -1) { headerIdx = i; break; }
+  }
+  if (headerIdx < 0) return null;
+
+  var sep = lines[headerIdx].indexOf('\t') > -1 ? '\t' : lines[headerIdx].indexOf(';') > -1 ? ';' : ',';
+  var headers = lines[headerIdx].split(sep).map(function(h) { return h.trim().replace(/"/g,'').toLowerCase(); });
+
+  function findCol(patterns) {
+    for (var p = 0; p < patterns.length; p++)
+      for (var h = 0; h < headers.length; h++)
+        if (headers[h].indexOf(patterns[p]) > -1) return h;
+    return -1;
+  }
+
+  var nomCol  = findCol(['nom et prenom','nom_eleve','prenom','nom']);
+  var obs1Col = findCol(['tenue','obs01','obs-01','obs1']);
+  var obs2Col = findCol(['trans','obs02','obs-02','obs2']);
+  var obs3Col = findCol(['equil','obs03','obs-03','obs3']);
+  var perfCol = findCol(['perf']);
+
+  var result = [];
+  for (var j = headerIdx + 1; j < lines.length; j++) {
+    var line = lines[j].trim();
+    if (!line || line.toLowerCase().indexOf('bilan') > -1) continue;
+    var cols = line.split(sep);
+    if (cols.length < 2) continue;
+    var nom = nomCol >= 0 ? cols[nomCol] : cols[0];
+    nom = nom ? nom.trim().replace(/"/g,'') : '';
+    if (!nom || /^\d+$/.test(nom)) continue;
+
+    function getObs(col) {
+      if (col < 0 || !cols[col]) return null;
+      var v = cols[col].trim().replace(/"/g,'').replace(/[()]/g,'').toUpperCase();
+      if (v === 'A') return 3; if (v === 'B') return 6; if (v === 'C') return 9;
+      var n = parseFloat(v.replace(',','.'));
+      return (!isNaN(n) && n >= 0 && n <= 10) ? n : null;
+    }
+
+    var o1 = getObs(obs1Col), o2 = getObs(obs2Col), o3 = getObs(obs3Col);
+    if (o1 === null || o2 === null || o3 === null) continue;
+    var moy = Math.round((o1 + o2 + o3) / 3 * 10) / 10;
+    var perf = perfCol >= 0 && cols[perfCol] ? parseFloat(cols[perfCol].trim().replace(',','.')) : null;
+    result.push({ nom: nom, obs: [o1, o2, o3], moy: moy, perf: perf });
+  }
+  return result;
+}
+
+function lancerComparaison() {
+  if (!compData.avant || !compData.apres) return;
+
+  var avant = compData.avant;
+  var apres = compData.apres;
+
+  // Jumeler par nom (insensible à la casse)
+  var paires = [];
+  avant.forEach(function(a) {
+    var match = apres.find(function(b) { return b.nom.toLowerCase() === a.nom.toLowerCase(); });
+    if (match) paires.push({ nom: a.nom, avant: a, apres: match });
+  });
+
+  if (paires.length === 0) {
+    afficherCompMsg('Aucun élève en commun trouvé. Vérifiez que les prénoms correspondent entre les deux fichiers.', 'warn');
+    return;
+  }
+
+  // Stats globales
+  var moyAvant = Math.round(avant.reduce(function(s,e){return s+e.moy;},0)/avant.length*10)/10;
+  var moyApres = Math.round(apres.reduce(function(s,e){return s+e.moy;},0)/apres.length*10)/10;
+  var deltaMoy = Math.round((moyApres - moyAvant)*10)/10;
+  var ameliores = paires.filter(function(p){return p.apres.moy > p.avant.moy;}).length;
+  var stables   = paires.filter(function(p){return p.apres.moy === p.avant.moy;}).length;
+  var baisses   = paires.filter(function(p){return p.apres.moy < p.avant.moy;}).length;
+
+  function profilCls(v) { if(v>=7.5) return 'C'; if(v>=5) return 'B'; return 'A'; }
+  function deltaHtml(d) {
+    if (d > 0) return '<span class="delta-pos">▲ +' + d + '</span>';
+    if (d < 0) return '<span class="delta-neg">▼ ' + d + '</span>';
+    return '<span class="delta-neu">= 0</span>';
+  }
+
+  // Summary cards
+  var sumHtml =
+    '<div class="comp-summary">' +
+      '<div class="comp-sum-card neu"><div class="csv">Moy. AVANT</div><div class="val">' + moyAvant + '</div><div class="csv">/10</div></div>' +
+      '<div class="comp-sum-card neu"><div class="csv">Moy. APRÈS</div><div class="val">' + moyApres + '</div><div class="csv">/10</div></div>' +
+      '<div class="comp-sum-card ' + (deltaMoy>0?'pos':deltaMoy<0?'neg':'neu') + '"><div class="csv">Évolution</div><div class="val">' + (deltaMoy>0?'+':'')+deltaMoy + '</div><div class="csv">pts</div></div>' +
+      '<div class="comp-sum-card pos"><div class="csv">Améliorés</div><div class="val">' + ameliores + '</div><div class="csv">élèves</div></div>' +
+      '<div class="comp-sum-card neu"><div class="csv">Stables</div><div class="val">' + stables + '</div><div class="csv">élèves</div></div>' +
+      '<div class="comp-sum-card neg"><div class="csv">En baisse</div><div class="val">' + baisses + '</div><div class="csv">élèves</div></div>' +
+    '</div>';
+
+  // Tableau individuel
+  var tbody = '';
+  paires.sort(function(a,b){ return (b.apres.moy - b.avant.moy) - (a.apres.moy - a.avant.moy); });
+  paires.forEach(function(p) {
+    var dMoy  = Math.round((p.apres.moy - p.avant.moy)*10)/10;
+    var dO1   = Math.round((p.apres.obs[0] - p.avant.obs[0])*10)/10;
+    var dO2   = Math.round((p.apres.obs[1] - p.avant.obs[1])*10)/10;
+    var dO3   = Math.round((p.apres.obs[2] - p.avant.obs[2])*10)/10;
+    var dPerf = (p.avant.perf && p.apres.perf) ? Math.round((p.apres.perf - p.avant.perf)*100)/100 : null;
+    var pAvant = profilCls(p.avant.moy);
+    var pApres = profilCls(p.apres.moy);
+    var profilChange = pAvant !== pApres ?
+      '<span class="badge badge-' + pAvant + '">' + pAvant + '</span> → <span class="badge badge-' + pApres + '">' + pApres + '</span>' :
+      '<span class="badge badge-' + pApres + '">' + pApres + '</span>';
+    tbody +=
+      '<tr>' +
+        '<td><strong>' + p.nom + '</strong></td>' +
+        '<td>' + p.avant.moy + '</td><td>' + p.apres.moy + '</td>' +
+        '<td>' + deltaHtml(dMoy) + '</td>' +
+        '<td>' + deltaHtml(dO1) + '</td>' +
+        '<td>' + deltaHtml(dO2) + '</td>' +
+        '<td>' + deltaHtml(dO3) + '</td>' +
+        '<td>' + profilChange + '</td>' +
+        '<td>' + (dPerf !== null ? deltaHtml(dPerf) + ' m' : '—') + '</td>' +
+      '</tr>';
+  });
+
+  var html =
+    sumHtml +
+    '<div class="table-wrap"><table class="comp-table">' +
+      '<thead><tr>' +
+        '<th>Élève</th><th>Moy avant</th><th>Moy après</th><th>Δ Moy</th>' +
+        '<th>Δ OBS-01</th><th>Δ OBS-02</th><th>Δ OBS-03</th>' +
+        '<th>Profil</th><th>Δ PERF</th>' +
+      '</tr></thead>' +
+      '<tbody>' + tbody + '</tbody>' +
+    '</table></div>' +
+    '<div class="alert alert-info" style="margin-top:12px;">' +
+      paires.length + ' élèves comparés · ' +
+      (avant.length - paires.length) + ' non appariés (noms différents).' +
+    '</div>';
+
+  document.getElementById('comp-results').innerHTML = html;
+  afficherCompMsg('', 'info');
+}
+
+function afficherCompMsg(msg, type) {
+  document.getElementById('comp-msg').innerHTML = msg ?
+    '<div class="alert alert-' + type + '">' + msg + '</div>' : '';
+}
+
+// ===================================================================
+// IMPRESSION PAR PAGE
+// ===================================================================
+var currentStep = 1;
+
+// Patch goStep pour tracker l'étape active
+var _origGoStep = goStep;
+goStep = function(n) {
+  currentStep = n;
+  _origGoStep(n);
+};
+
+function togglePrintMenu() {
+  var menu = document.getElementById('print-menu');
+  menu.classList.toggle('open');
+}
+
+// Fermer le menu si clic ailleurs
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('print-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    var menu = document.getElementById('print-menu');
+    if (menu) menu.classList.remove('open');
+  }
+});
+
+var STEP_TITRES = {
+  1: 'Diagnostic de classe',
+  2: 'Axes prioritaires',
+  3: 'Paramétrage du cycle',
+  4: 'Planification du cycle',
+  5: 'Comparaison avant / après'
+};
+
+function getStepHTML(stepNum) {
+  var el = document.getElementById('step' + stepNum);
+  return el ? el.innerHTML : '';
+}
+
+function buildPrintWindow(titre, bodyHTML) {
+  // Récupérer le CSS de la page courante
+  var styles = '';
+  document.querySelectorAll('style').forEach(function(s) { styles += s.innerHTML; });
+
+  var win = window.open('', '_blank');
+  if (!win) { alert('Autorisez les pop-ups pour imprimer.'); return; }
+
+  win.document.write('<!DOCTYPE html><html lang="fr"><head>');
+  win.document.write('<meta charset="UTF-8">');
+  win.document.write('<title>' + titre + ' — Outil ADP 2026</title>');
+  win.document.write('<style>' + styles + '</style>');
+  win.document.write('<style>');
+  // Forcer mode impression dans la fenêtre popup
+  win.document.write('body{background:#fff!important;color:#111!important;font-size:11pt;}');
+  win.document.write('.section{display:block!important;}');
+  win.document.write('.no-print,.btn,.import-zone,input[type=range]{display:none!important;}');
+  win.document.write('.card{border:1px solid #bbb!important;background:#fff!important;margin-bottom:12px!important;page-break-inside:avoid;}');
+  win.document.write('.card h2{color:#2a2a2a!important;border-bottom:1px solid #ddd;padding-bottom:6px;}');
+  win.document.write('.stat-card{background:#f5f5f5!important;border:1px solid #ccc!important;}');
+  win.document.write('.stat-card.A .val{color:#c0392b!important;} .stat-card.B .val{color:#e67e22!important;} .stat-card.C .val{color:#27ae60!important;} .stat-card.avg .val{color:#2980b9!important;}');
+  win.document.write('.stat-card .lbl{color:#555!important;}');
+  win.document.write('.data-table th,.seq-table th,.cycle-summary th,.comp-table th{background:#e8eaf2!important;color:#222!important;}');
+  win.document.write('.data-table td,.seq-table td,.cycle-summary td,.comp-table td{color:#111!important;border-color:#ccc!important;}');
+  win.document.write('.data-table tr.prof-A td{background:#fff0f0!important;} .data-table tr.prof-B td{background:#fff8e8!important;} .data-table tr.prof-C td{background:#f0fff8!important;}');
+  win.document.write('.seq-table td.grp-A{background:#fff0f0!important;} .seq-table td.grp-B{background:#fff8e8!important;} .seq-table td.grp-C{background:#f0fff8!important;}');
+  win.document.write('.seq-header{background:#4f8ef7!important;color:#fff!important;}');
+  win.document.write('.obs-card{background:#f5f5f5!important;border:1px solid #ccc!important;}');
+  win.document.write('.obs-card.lacune .obs-val{color:#c0392b!important;} .obs-card.cours .obs-val{color:#e67e22!important;} .obs-card.bon .obs-val{color:#27ae60!important;}');
+  win.document.write('.obs-card .obs-title,.obs-card .obs-status{color:#444!important;}');
+  win.document.write('.badge-A{background:#fde8e8!important;color:#c0392b!important;} .badge-B{background:#fdf3e0!important;color:#e67e22!important;} .badge-C{background:#e8fdf0!important;color:#27ae60!important;}');
+  win.document.write('.decision-box{border-color:#e67e22!important;background:#fffbf0!important;} .decision-box strong{color:#e67e22!important;}');
+  win.document.write('.groupe-need{background:#f5f5f5!important;border-color:#ccc!important;}');
+  win.document.write('.reco-box{background:#eef4ff!important;border-color:#4f8ef7!important;color:#111!important;}');
+  win.document.write('.sa-name{color:#b8860b!important;} .critere{color:#27ae60!important;} .consigne{color:#444!important;}');
+  win.document.write('.indicatif{background:#f5f5f5!important;border-left-color:#888!important;color:#555!important;}');
+  win.document.write('.axe-item{border-color:#ccc!important;background:#fff!important;} .axe-title{color:#111!important;} .axe-meta{color:#555!important;}');
+  win.document.write('.slider-display{background:#f5f5f5!important;border-color:#4f8ef7!important;color:#111!important;} .slider-display strong{color:#b8860b!important;}');
+  win.document.write('.tl-check{border-color:#888!important;background:#fff!important;color:#111!important;} .tl-check.done{background:#27ae60!important;color:#fff!important;}');
+  win.document.write('.tl-progress-track{background:#ddd!important;} .tl-progress-fill{background:#27ae60!important;}');
+  win.document.write('.tl-stats{color:#444!important;} .tl-stats strong{color:#111!important;}');
+  win.document.write('.timeline-wrap{background:#f5f5f5!important;border-color:#ccc!important;}');
+  win.document.write('.comp-sum-card{background:#f5f5f5!important;border-color:#ccc!important;}');
+  win.document.write('.comp-sum-card.pos .val{color:#27ae60!important;} .comp-sum-card.neg .val{color:#c0392b!important;} .comp-sum-card.neu .val{color:#2980b9!important;}');
+  win.document.write('.delta-pos{color:#27ae60!important;} .delta-neg{color:#c0392b!important;}');
+  win.document.write('.table-wrap{overflow:visible!important;}');
+  win.document.write('.seq-block{page-break-inside:avoid;}');
+  win.document.write('.print-header{border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:20px;display:flex;align-items:center;gap:12px;}');
+  win.document.write('.print-header .ph-logo{width:36px;height:36px;background:#4f8ef7;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}');
+  win.document.write('.print-header h1{font-size:14pt;color:#111;margin:0;} .print-header p{font-size:9pt;color:#555;margin:0;}');
+  win.document.write('@page{margin:1.5cm;}');
+  win.document.write('</style>');
+  win.document.write('</head><body>');
+
+  // En-tête d'impression
+  var d = new Date();
+  var dateStr = d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear();
+  win.document.write(
+    '<div class="print-header">' +
+      '<div class="ph-logo">⚙️</div>' +
+      '<div>' +
+        '<h1>Outil ADP 2026 — ' + titre + '</h1>' +
+        '<p>CRMEF Inezgane · EPS · Lancer de Poids DI-POI · Imprimé le ' + dateStr + '</p>' +
+      '</div>' +
+    '</div>'
+  );
+
+  win.document.write('<div>' + bodyHTML + '</div>');
+  win.document.write('</body></html>');
+  win.document.close();
+
+  // Lancer l'impression automatiquement après chargement
+  win.onload = function() { win.focus(); win.print(); };
+  setTimeout(function() { try { win.focus(); win.print(); } catch(e){} }, 600);
+}
+
+function imprimerPage() {
+  var menu = document.getElementById('print-menu');
+  if (menu) menu.classList.remove('open');
+  var titre = STEP_TITRES[currentStep] || 'Page courante';
+  var html = getStepHTML(currentStep);
+  if (!html || html.trim() === '') {
+    alert('Cette page ne contient pas encore de contenu à imprimer.');
+    return;
+  }
+  buildPrintWindow(titre, html);
+}
+
+function imprimerSection(num) {
+  var menu = document.getElementById('print-menu');
+  if (menu) menu.classList.remove('open');
+  var titre = STEP_TITRES[num] || 'Section ' + num;
+  var html = getStepHTML(num);
+  if (!html || html.trim() === '') {
+    alert('La section "' + titre + '" ne contient pas encore de contenu.\nNaviguez d\'abord vers cette étape pour générer le contenu.');
+    return;
+  }
+  buildPrintWindow(titre, html);
+}
+
+function imprimerTout() {
+  var menu = document.getElementById('print-menu');
+  if (menu) menu.classList.remove('open');
+  var html = '';
+  for (var i = 1; i <= 5; i++) {
+    var stepHTML = getStepHTML(i);
+    if (stepHTML && stepHTML.trim() !== '') {
+      html += '<h2 style="margin-top:24px;padding-top:16px;border-top:2px solid #4f8ef7;color:#2a2a2a;">' +
+        STEP_TITRES[i] + '</h2>' + stepHTML;
+    }
+  }
+  if (!html) {
+    alert('Aucun contenu à imprimer. Complétez au moins l\'étape 1.');
+    return;
+  }
+  buildPrintWindow('Rapport complet', html);
+}
+
+// ===================================================================
+// GESTION MULTI-CLASSES
+// ===================================================================
+var classes = [];          // [{id, nom, donnees}]
+var classeActiveId = null;
+
+function initClasses() {
+  var raw = localStorage.getItem('adp_classes');
+  try { classes = raw ? JSON.parse(raw) : []; } catch(e) { classes = []; }
+  if (classes.length === 0) {
+    // Créer classe par défaut
+    var def = { id: 'classe_1', nom: '3ème A', donnees: null };
+    classes.push(def);
+    classeActiveId = def.id;
+  } else {
+    classeActiveId = localStorage.getItem('adp_classe_active') || classes[0].id;
+  }
+  sauvegarderClasses();
+  renderClassesTabs();
+}
+
+function sauvegarderClasses() {
+  localStorage.setItem('adp_classes', JSON.stringify(classes));
+  localStorage.setItem('adp_classe_active', classeActiveId);
+}
+
+function getClasseActive() {
+  return classes.find(function(c) { return c.id === classeActiveId; }) || classes[0];
+}
+
+function renderClassesTabs() {
+  var container = document.getElementById('classes-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+  classes.forEach(function(cl) {
+    var wrap = document.createElement('span');
+    wrap.className = 'classe-tab-wrap';
+    var tab = document.createElement('button');
+    tab.className = 'classe-tab' + (cl.id === classeActiveId ? ' active' : '');
+    tab.textContent = cl.nom;
+    tab.onclick = function() { switcherClasse(cl.id); };
+    // Double-clic pour renommer
+    tab.ondblclick = function() { renommerClasse(cl.id); };
+    tab.title = 'Clic : activer · Double-clic : renommer';
+    var del = document.createElement('button');
+    del.className = 'classe-del';
+    del.textContent = '×';
+    del.title = 'Supprimer cette classe';
+    del.onclick = function(e) { e.stopPropagation(); supprimerClasse(cl.id); };
+    wrap.appendChild(tab);
+    if (classes.length > 1) wrap.appendChild(del);
+    container.appendChild(wrap);
+  });
+}
+
+function switcherClasse(id) {
+  // Sauvegarder données de la classe active avant de switcher
+  sauvegarderDonneesClasse(classeActiveId);
+  classeActiveId = id;
+  sauvegarderClasses();
+  // Charger données de la nouvelle classe
+  chargerDonneesClasse(id);
+  renderClassesTabs();
+  // Réinitialiser l'analyse
+  eleves = [];
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  // Afficher message
+  var cl = getClasseActive();
+  showImportMsg('Classe "' + cl.nom + '" chargée.', 'info');
+}
+
+function sauvegarderDonneesClasse(id) {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var data = [];
+  rows.forEach(function(row) {
+    var nomI  = row.querySelector('input[type="text"]:not([data-obs])') || row.querySelectorAll('input')[0];
+    var obs1I = row.querySelector('input[data-obs="1"]');
+    var obs2I = row.querySelector('input[data-obs="2"]');
+    var obs3I = row.querySelector('input[data-obs="3"]');
+    var perfI = row.querySelector('input[data-obs="perf"]');
+    data.push({
+      nom:  nomI  ? nomI.value  : '',
+      obs1: obs1I ? obs1I.value : '',
+      obs2: obs2I ? obs2I.value : '',
+      obs3: obs3I ? obs3I.value : '',
+      perf: perfI ? perfI.value : ''
+    });
+  });
+  var cl = classes.find(function(c) { return c.id === id; });
+  if (cl) cl.donnees = data;
+  sauvegarderClasses();
+}
+
+function chargerDonneesClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; });
+  document.getElementById('rows-container').innerHTML = '';
+  if (cl && cl.donnees && cl.donnees.length > 0) {
+    cl.donnees.forEach(function(d) { addRow(d.nom, d.obs1, d.obs2, d.obs3, d.perf); });
+  } else {
+    for (var i = 0; i < 5; i++) addRow();
+  }
+}
+
+function ajouterClasse() {
+  var nom = prompt('Nom de la nouvelle classe (ex: 3ème B) :');
+  if (!nom || !nom.trim()) return;
+  // Sauvegarder d'abord la classe courante
+  sauvegarderDonneesClasse(classeActiveId);
+  var id = 'classe_' + Date.now();
+  classes.push({ id: id, nom: nom.trim(), donnees: null });
+  classeActiveId = id;
+  sauvegarderClasses();
+  // Vider le formulaire pour la nouvelle classe
+  document.getElementById('rows-container').innerHTML = '';
+  for (var i = 0; i < 5; i++) addRow();
+  eleves = [];
+  document.getElementById('results1').style.display = 'none';
+  renderClassesTabs();
+  showImportMsg('Nouvelle classe "' + nom.trim() + '" créée.', 'info');
+}
+
+function renommerClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; });
+  if (!cl) return;
+  var nouveau = prompt('Nouveau nom pour "' + cl.nom + '" :', cl.nom);
+  if (!nouveau || !nouveau.trim()) return;
+  cl.nom = nouveau.trim();
+  sauvegarderClasses();
+  renderClassesTabs();
+}
+
+function supprimerClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; });
+  if (!cl) return;
+  if (!confirm('Supprimer la classe "' + cl.nom + '" ? Cette action est irréversible.')) return;
+  classes = classes.filter(function(c) { return c.id !== id; });
+  if (classeActiveId === id) {
+    classeActiveId = classes[0].id;
+    chargerDonneesClasse(classeActiveId);
+  }
+  sauvegarderClasses();
+  renderClassesTabs();
+}
+
+// Patch sauvegarderDonnees pour inclure la classe active
+var _origSauvegarderDonnees = sauvegarderDonnees;
+sauvegarderDonnees = function() {
+  _origSauvegarderDonnees();
+  sauvegarderDonneesClasse(classeActiveId);
+};
+
+// ===================================================================
+// MODE TABLETTE TERRAIN
+// ===================================================================
+var tabletMode = false;
+
+function toggleTabletMode() {
+  tabletMode = !tabletMode;
+  document.body.classList.toggle('tablet-mode', tabletMode);
+  var btn = document.getElementById('tablet-toggle');
+  if (btn) {
+    btn.textContent = tabletMode ? '⌨️ Normal' : '📱 Tablette';
+    btn.classList.toggle('on', tabletMode);
+  }
+  localStorage.setItem('adp_tablet', tabletMode ? '1' : '0');
+  // Mettre à jour toutes les lignes existantes
+  updateTabletRows();
+}
+
+function updateTabletRows() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  rows.forEach(function(row) {
+    injecterBoutonsObs(row);
+  });
+}
+
+function injecterBoutonsObs(row) {
+  // Pour chaque obs 1/2/3, créer/afficher le groupe de boutons A/B/C
+  [1, 2, 3].forEach(function(obsNum) {
+    var input = row.querySelector('input[data-obs="' + obsNum + '"]');
+    if (!input) return;
+    var groupId = 'obsbtn_' + obsNum + '_' + row.dataset.rowid;
+    var existing = row.querySelector('.obs-btn-group[data-obs-btn="' + obsNum + '"]');
+    if (!existing) {
+      var group = document.createElement('div');
+      group.className = 'obs-btn-group';
+      group.setAttribute('data-obs-btn', obsNum);
+      ['A','B','C'].forEach(function(code) {
+        var btn = document.createElement('button');
+        btn.className = 'obs-btn';
+        btn.textContent = code;
+        btn.type = 'button';
+        btn.onclick = (function(inp, grp, c) {
+          return function() {
+            inp.value = c;
+            // Mettre à jour la sélection visuelle
+            grp.querySelectorAll('.obs-btn').forEach(function(b) {
+              b.classList.remove('sel-A','sel-B','sel-C');
+            });
+            btn.classList.add('sel-' + c);
+            // Déclencher auto-save
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+          };
+        })(input, group, code);
+        group.appendChild(btn);
+      });
+      // Insérer après l'input obs
+      input.parentNode.insertBefore(group, input.nextSibling);
+    }
+    // Sync sélection visuelle avec valeur actuelle
+    var grp = row.querySelector('.obs-btn-group[data-obs-btn="' + obsNum + '"]');
+    if (grp) {
+      var val = input.value.trim().toUpperCase();
+      grp.querySelectorAll('.obs-btn').forEach(function(b) {
+        b.classList.remove('sel-A','sel-B','sel-C');
+        if (b.textContent === val) b.classList.add('sel-' + val);
+      });
+    }
+  });
+}
+
+// Patch addRow pour injecter les boutons si mode tablette actif
+var _origAddRow2 = addRow;
+addRow = function(nom, v1, v2, v3, perf) {
+  _origAddRow2(nom, v1, v2, v3, perf);
+  if (tabletMode) {
+    var rows = document.querySelectorAll('#rows-container .student-row');
+    var lastRow = rows[rows.length - 1];
+    if (lastRow) injecterBoutonsObs(lastRow);
+  }
+};
+
+// Restaurer les données au chargement
+restaurerDonnees();
+
+// Restaurer le thème
+if (localStorage.getItem('adp_theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-btn').textContent = '🌙 Mode sombre';
+}
+
+// Restaurer le mode tablette
+if (localStorage.getItem('adp_tablet') === '1') {
+  tabletMode = true;
+  document.body.classList.add('tablet-mode');
+  var tbtn = document.getElementById('tablet-toggle');
+  if (tbtn) { tbtn.textContent = '⌨️ Normal'; tbtn.classList.add('on'); }
+}
+
+// Initialiser gestion multi-classes (remplace restaurerDonnees direct)
+initClasses();
+chargerDonneesClasse(classeActiveId);
+
+updateSlider();
+</script>
+</body>
+</html>
