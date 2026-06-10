@@ -1,0 +1,152 @@
+﻿PROMPT P1 — ANALYSE DU RÉFÉRENTIEL
+Objectif : Extraire les critères · niveaux · indicateurs du référentiel
+═══════════════════════════════════════════════════════════════════════════
+
+
+MODÈLE GÉNÉRIQUE (à compléter par l'équipe)
+───────────────────────────────────────────
+[1] RÔLE IA
+Tu es un enseignant EPS expert en didactique des activités physiques
+et sportives, spécialiste du référentiel [APS] niveau [Niveau].
+
+
+[2] CONTEXTE
+APS         : LANCER DE POIDS
+Famille     : LES LANCER
+Niveau      : NIVEAU 1,2,3
+Population  : Collégiens / lycéens 
+
+
+[3] TÂCHE
+À partir du référentiel officiel joint en PDF, extraire et organiser :
+  · Les critères d'évaluation avec leur pondération exacte
+  · Les indicateurs observables par critère
+  · Les 3 niveaux de maîtrise A / B / C avec les termes EXACTS
+    du référentiel
+  · Les spécificités de l'APS à prendre en compte pour l'observation
+    terrain
+
+
+[4] RÉFÉRENTIEL
+Protocole officiel [APS] [Niveau] joint en PDF dans cette conversation.
+[JOINDRE LE PDF AVANT D'ENVOYER LE PROMPT]
+
+
+[5] CONTRAINTES
+  · Utiliser UNIQUEMENT les termes exacts du référentiel officiel
+  · Ne pas reformuler ni paraphraser les descripteurs de niveaux
+  · Signaler si un terme qualitatif est absent pour un degré
+    (ex. C1 haies = barème chiffré uniquement)
+  · Identifier les spécificités : barème genré · cotation difficulté ·
+    2 essais · règles aménagées · rôles sociaux
+
+
+[6] FORMAT SORTIE
+Tableau structuré · 4 colonnes :
+  Colonne 1 : Critère (intitulé exact + points)
+  Colonne 2 : Indicateurs observables
+  Colonne 3 : Degré A — terme exact + descripteurs
+  Colonne 4 : Degré B — terme exact + descripteurs
+  Colonne 5 : Degré C — terme exact + descripteurs
++ Section finale : Spécificités terrain à intégrer dans la fiche
+
+
+[7] SORTIE ATTENDUE
+Tableau d'analyse du référentiel · prêt à soumettre au enseignant
+Nom fichier : Analyse_Ref_[APS]_Equipe[N]_ADP2026
+
+
+[8] CRITIQUE À NOTER DANS SECTION F
+  · L'IA a-t-elle respecté les termes exacts ou paraphrasé ?
+  · Quels termes ont été modifiés ? Pourquoi ?
+  · Combien d'itérations pour obtenir le tableau conforme ?
+  · Quelle composante du prompt a été la plus déterminante ?
+
+
+───────────────────────────────────────────
+EXEMPLES COMPLÉTÉS PAR FAMILLE
+───────────────────────────────────────────
+
+
+P1 — HANDBALL DNB
+  [1] Tu es un enseignant EPS expert en handball scolaire DNB.
+  [2] APS : Handball · Famille : Sport collectif · Niveau : DNB débutants
+      Population : Collégiens 3e · première expérience de jeu organisé
+  [3] [Tâche générique — voir ci-dessus]
+  [4] Référentiel DNB Handball joint en PDF.
+  [5] + Contrainte spécifique : Identifier les 6 volets observables
+      (PB · NP · DF individuels + JO · DO · GE collectifs) · signaler
+      l'absence de C3 rôles sociaux dans ce référentiel
+  [6] [Format générique — voir ci-dessus]
+  [7] Analyse_Ref_HDB_Equipe[N]_ADP2026
+  [8] Section F : noter si l'IA a spontanément distingué volets
+      individuels et collectifs ou si la contrainte [5] était nécessaire
+
+
+P1 — HAIES NIVEAU 2
+  [1] Tu es un enseignant EPS expert en athlétisme scolaire niveau 2.
+  [2] APS : Course de haies · Famille : Athlétisme · Niveau : Niveau 2
+      Population : Collégiens / lycéens · effectif réduit 3-4 élèves
+  [3] [Tâche générique — voir ci-dessus]
+  [4] Référentiel Haies Niveau 2 joint en PDF.
+  [5] + Contraintes spécifiques :
+      · C1 performance = barème chiffré objectif · pas de terme qualitatif
+        dans le référentiel · le signaler explicitement
+      · Fournir les deux barèmes séparés : Filles ET Garçons
+      · Identifier les 3 termes exacts de C2 :
+        "Coureur sauteur" · "Coureur coordonné" · "Coureur accélérateur"
+      · Identifier les 3 termes exacts de C3 :
+        "Juge dilettante" · "Juge fiable" · "Juge multifonctions"
+  [6] [Format générique + colonne genre pour C1]
+  [7] Analyse_Ref_ATH_Equipe[N]_ADP2026
+  [8] Section F : noter si l'IA a signalé spontanément l'absence
+      de terme qualitatif pour C1 · sinon quelle composante l'a forcé
+
+
+P1 — GYMNASTIQUE SPORTIVE DNB
+  [1] Tu es un enseignant EPS expert en gymnastique sportive scolaire DNB.
+  [2] APS : Gym sportive · Famille : Activité gymnique · Niveau : DNB
+      Population : Collégiens 3e · enchainement formalisé · jury
+  [3] [Tâche générique — voir ci-dessus]
+  [4] Référentiel DNB Gymnastique sportive joint en PDF.
+  [5] + Contraintes spécifiques :
+      · Identifier les 3 termes EXACTS de C1 :
+        "L'enchaînement est minimal" · "construit" · "riche et original"
+      · Identifier les 3 termes EXACTS de C2 :
+        "Le gymnaste exécute" · "maîtrise" · "anticipe"
+      · Identifier les 3 termes EXACTS de C3 :
+        "Le jugement est partiel" · "argumenté" · "pertinent"
+      · Signaler la cotation difficulté D=0,7 · C=0,8 · B=0,9 · A=1
+      · Signaler les 2 essais et le lien C3 juge → C1 essai 2
+  [6] [Format générique + colonne coefficient difficulté]
+  [7] Analyse_Ref_GYM_Equipe[N]_ADP2026
+  [8] Section F : noter si l'IA a spontanément intégré le coefficient
+      dans sa lecture de C1 ou si la contrainte était nécessaire
+
+
+P1 — VOLLEY-BALL DNB
+  [1] Tu es un enseignant EPS expert en volley-ball scolaire DNB.
+  [2] APS : Volley-ball · Famille : Sport de renvoi · Niveau : DNB
+      Population : Collégiens · jeu à effectif réduit · règles aménagées
+  [3] [Tâche générique — voir ci-dessus]
+  [4] Référentiel DNB Volley-ball joint en PDF.
+  [5] + Contraintes spécifiques :
+      · Identifier les 3 termes EXACTS de C1 :
+        "Jeu en réaction" · "Construction collective de l'attaque" ·
+        "Intention collective de rupture"
+      · Identifier les 3 termes EXACTS de C2 :
+        "Joueur intermittent ou devant bénéficier de règles aménagées" ·
+        "Joueur efficace en situation favorable" ·
+        "Joueur mobile pour être efficace"
+      · Identifier les 3 termes EXACTS de C3 :
+        "Rôles insuffisamment assurés" · "Rôles assumés" (avec aide) ·
+        "Rôles assurés"
+      · Signaler la distinction "assumés" (B) vs "assurés" (C)
+      · Signaler la mention "règles aménagées" pour très débutants
+  [6] [Format générique + colonne flag RA si règles aménagées]
+  [7] Analyse_Ref_VLY_Equipe[N]_ADP2026
+  [8] Section F : noter si l'IA a distingué spontanément
+      "assumés" / "assurés" ou si la contrainte [5] était nécessaire
+
+
+

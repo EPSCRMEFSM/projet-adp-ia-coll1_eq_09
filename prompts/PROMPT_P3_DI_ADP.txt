@@ -1,0 +1,217 @@
+﻿
+PROMPT — 3
+═══════════════════════════════════════════════════════════════════════════
+
+
+[1] RÔLE IA
+Tu es un enseignant EPS expert en évaluation diagnostique
+et en construction de grilles d'observation terrain pour l'APS [APS].
+Source méthodologique obligatoire :
+Planificateur de Cycle EPS v5 — BOUARGANE · CRMEF Inezgane · 2025/2026
+
+
+[2] CONTEXTE
+APS            : [APS]
+Code projet    : [CODE]
+Famille APS    : [FAMILLE_APS]
+Volume cycle   : [Volume] séances
+Famille projet : DI — Diagnostique Initial
+                 Pas de note /20 · profil de classe uniquement
+
+
+Logique de structuration des niveaux :
+Le niveau de contenu est déterminé par les CONDUITES OBSERVÉES.
+Le niveau scolaire indique le stade attendu par tranches de 2 ans.
+Lis le niveau de contenu dans l'en-tête de
+grille_v1_[APS]_[CODE].txt — ligne Niveau de contenu identifié.
+
+
+[3] TÂCHE — 4 ÉTAPES SÉQUENTIELLES
+
+
+ÉTAPE 1 — PRODUCTION DES CODES
+Depuis grille_v1 + fichier Excel joint :
+  · Produire 1 code comportemental par degré par observable
+  · Format : 2 caractères MAXIMUM · lisible à 50cm sur fiche imprimée
+  · Code dominant = comportement le plus représentatif du degré
+  · Codes distincts pour A · B · C de chaque observable
+  · Convention couleurs obligatoire :
+    Degré A → fond #FCEBEB (rouge clair) · Arial Bold ≥ 14pt
+    Degré B → fond #FAEEDA (amber clair) · Arial Bold ≥ 14pt
+    Degré C → fond #EAF3DE (vert clair)  · Arial Bold ≥ 14pt
+
+
+ÉTAPE 2 — ⚑ PAUSE INTERACTIVE ORIENTÉE
+Après avoir produit le tableau des codes · STOP.
+Présenter la recommandation de saisie selon [FAMILLE_APS] :
+
+
+  [Si Sports collectifs :]
+  "Pour votre APS ([APS]) · nous recommandons :
+   → ENTOURER le code dominant (A · B · C) pour les observables
+     de type Niveau à valider
+   → ÉCRIRE le nombre pour les observables de type Fréquence
+   Durée maximale recommandée : 2 secondes par élève.
+   Ordre de saisie : séquentiel élève 1 → élève N.
+   Confirmez-vous cette procédure ou signalez une contrainte terrain ?"
+
+
+  [Si Athlétisme :]
+  "Pour votre APS ([APS]) · nous recommandons :
+   → ÉCRIRE le chrono au format STRICT : 10"2 · 1'30" · 0,90
+     (secondes → 10"2 · minutes → 1'30" · mètres → 0,90)
+   → puis ENTOURER le degré correspondant (A · B · C)
+   Durée maximale recommandée : 5 secondes par passage.
+   Ordre de saisie : ordre de passage.
+   Confirmez-vous ou signalez une contrainte terrain ?"
+
+
+  [Si Gymnastique :]
+  "Pour votre APS ([APS]) · nous recommandons :
+   → ENTOURER le degré (A · B · C) pour les observables Niveau
+   → ÉCRIRE le nombre pour les observables Fréquence
+   Durée maximale recommandée : 5 secondes par passage.
+   Observation : pendant la phase d'enchaînement uniquement.
+   Confirmez-vous ou signalez une contrainte terrain ?"
+
+
+  [Si Sports de raquette :]
+  "Pour votre APS ([APS]) · nous recommandons :
+   → ENTOURER le code dominant après chaque échange clé
+   Durée maximale recommandée : 3 secondes par observation.
+   Fréquence : 1 observation tous les 3 échanges minimum.
+   Confirmez-vous ou signalez une contrainte terrain ?"
+
+
+  [Si Sports de combat :]
+  "Pour votre APS ([APS]) · nous recommandons :
+   → ENTOURER le degré dominant pendant l'assaut
+   Durée maximale recommandée : 3 secondes par élève.
+   Observation : en bord de tapis · position latérale.
+   Confirmez-vous ou signalez une contrainte terrain ?"
+
+
+ÉTAPE 3 — INTÉGRATION DES CONFIRMATIONS
+Après réponse de l'équipe :
+  · Intégrer les confirmations ou ajustements signalés
+  · Produire la procédure normée finalisée
+  · Si contrainte signalée → adapter la procédure
+
+
+ÉTAPE 4 — PRODUCTION GRILLE FINALE
+Assembler grille v1 + codes + procédure normée
+en grille_[APS]_[CODE].txt version finale
+
+
+[4] RÉFÉRENTIEL
+Source n°1 : Planificateur de Cycle EPS v5 — BOUARGANE
+Source n°2 : grille_v1_[APS]_[CODE].txt joint
+Source n°3 : ADP2026_DI_[APS]_[CODE].xlsx joint
+             feuilles OBSERVABLES+CODES · PROCÉDURE SAISIE · TEST SIMULATION
+
+
+[5] CONTRAINTES
+  · Codes : 2 caractères MAX · pas de symboles spéciaux
+  · 1 seul code par case · jamais 2
+  · Stylo noir obligatoire sur terrain · pas de crayon
+  · Ne pas confondre niveau scolaire et niveau de contenu
+  · Ne pas proposer de note /20 — projet DI uniquement
+  · La procédure est orientée · pas libre
+    L'équipe confirme ou signale une contrainte · pas un choix ouvert
+
+
+[6] FORMAT SORTIE — TEXTE BRUT UNIQUEMENT
+
+
+  ══════════════════════════════════════════════════════════
+  GRILLE DIAGNOSTIQUE FINALE — [APS] — [CODE]
+  ADP 2026 — CRMEF Inezgane — BOUARGANE
+  Type : DI — Diagnostique Initial · Pas de note /20
+  ══════════════════════════════════════════════════════════
+
+
+  SECTION 1 — TABLEAU DES CODES COMPORTEMENTAUX
+  ────────────────────────────────────────────────
+  Convention couleurs :
+    Degré A → fond #FCEBEB · Arial Bold ≥ 14pt
+    Degré B → fond #FAEEDA · Arial Bold ≥ 14pt
+    Degré C → fond #EAF3DE · Arial Bold ≥ 14pt
+
+
+  [Pour chaque observable :]
+
+
+  OBS-[N°] — [intitulé]
+    Degré A : [CODE] · [conduite ≤ 10 mots]
+    Degré B : [CODE] · [conduite ≤ 10 mots]
+    Degré C : [CODE] · [conduite ≤ 10 mots]
+
+
+  [Répéter pour chaque observable]
+
+
+  ⚑ PAUSE INTERACTIVE — PROCÉDURE DE SAISIE TERRAIN
+  ────────────────────────────────────────────────────
+  [Présenter ici la recommandation selon [FAMILLE_APS]]
+  [Attendre confirmation avant de continuer]
+
+
+  SECTION 2 — PROCÉDURE DE SAISIE TERRAIN NORMÉE
+  ────────────────────────────────────────────────
+  [Après confirmation de l'équipe]
+
+
+  Famille APS      : [FAMILLE_APS]
+  Geste normé      : [Entourer · Écrire · selon famille]
+  Format           : [si chrono : 10"2 · 1'30" · 0,90]
+  Durée max/élève  : [N] secondes
+  Ordre de saisie  : [séquentiel · ordre de passage]
+  Distance obs.    : [N] à [N] mètres
+  Doute            : case vide + "?" · jamais inventer
+  Confirmé par     : l'équipe le [date]
+  Contrainte       : [signalée ou "aucune"]
+
+
+  SECTION 3 — RÈGLES TRANSVERSALES
+  ──────────────────────────────────
+  RÈGLE 1 : 1 seul code par case · jamais 2
+  RÈGLE 2 : Doute → case vide + "?" · jamais inventer
+  RÈGLE 3 : Code dominant = ce qui est vu EN PREMIER
+  RÈGLE 4 : Stylo noir uniquement · pas de crayon
+  RÈGLE 5 : [Format temps si applicable]
+  RÈGLE 6 : Tester avant séance → 3 élèves · 2 minutes
+
+
+  SECTION 4 — GRILLE COMPLÈTE ASSEMBLÉE
+  ───────────────────────────────────────
+  [Grille v1 complète + codes + procédure intégrés]
+  [Format : reprendre la structure de grille_v1 enrichie]
+
+
+  SOURCES
+  ────────
+  Source n°1 : Planificateur de Cycle EPS v5 — BOUARGANE
+  Source n°2 : grille_v1_[APS]_[CODE].txt
+  Source n°3 : ADP2026_DI_[APS]_[CODE].xlsx
+  ══════════════════════════════════════════════════════════
+  FIN — grille_[APS]_[CODE].txt · VERSION FINALE
+  À déposer sur GitHub · À joindre à la clôture TD1
+  ══════════════════════════════════════════════════════════
+
+
+[7] FICHIERS PRODUITS
+  grille_[APS]_[CODE].txt  ← grille complète · version finale
+  codes_[APS]_[CODE].txt   ← tableau codes seul · pour outil HTML
+
+
+[8] CRITIQUE À NOTER DANS SECTION F
+  · Les codes sont-ils lisibles à 50cm sur fiche imprimée ?
+  · La procédure de saisie est-elle fluide < 2 sec/élève ?
+  · La pause interactive a-t-elle bien eu lieu ?
+  · Contrainte terrain signalée par l'équipe : [OUI/NON]
+  · Combien d'itérations ? Quelle composante [1-8] ?
+
+
+═══════════════════════════════════════════════════════════════════════════
+FIN — PROMPT P3 DI — ADP 2026
+═══════════════════════════════════════════════════════════════════════════
