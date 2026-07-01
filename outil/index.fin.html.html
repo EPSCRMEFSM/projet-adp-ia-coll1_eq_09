@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outil ADP 2026 — Lancer de Poids DI-POI v2</title>
+<!-- ============================================================
+     ADP 2026 — Outil d'Aide à la Décision Pédagogique (EPS)
+     Lancer de Poids / DI-POI — CRMEF Inezgane
+     Déployable sur GitHub Pages — 100 % autonome, sans serveur
+     Toutes les données restent localement dans le navigateur.
+     ============================================================ -->
+<style>
+  /* ===== DESIGN SYSTEM ===== */
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22253a;
+    --border: #2e3250;
+    --accent: #4f8ef7;
+    --accent2: #f7c94f;
+    --green: #3ecf8e;
+    --orange: #f79c4f;
+    --red: #f75f5f;
+    --text: #e8eaf2;
+    --text2: #8b91b5;
+    --radius: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ===== BANDEAU CONFIDENTIALITÉ ===== */
+  .privacy-banner {
+    background: linear-gradient(90deg, rgba(62,207,142,0.15), rgba(79,142,247,0.15));
+    border-bottom: 1px solid rgba(62,207,142,0.3);
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text2);
+    flex-wrap: wrap;
+  }
+  .privacy-banner strong { color: var(--green); }
+  .privacy-banner .pb-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  .privacy-banner .pb-close:hover { color: var(--text); }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky; top: 0; z-index: 100;
+    flex-wrap: wrap;
+  }
+  .logo {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  header h1 { font-size: 14px; font-weight: 700; color: var(--text); }
+  header p { font-size: 10px; color: var(--text2); }
+  .header-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .hbtn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 7px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .hbtn:hover { color: var(--text); border-color: var(--accent); }
+  .hbtn.danger:hover { border-color: var(--red); color: var(--red); }
+  .hbtn.demo-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* MENU IMPRESSION */
+  .print-menu-wrap { position: relative; display: inline-block; }
+  .print-menu {
+    display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; min-width: 220px; z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4); overflow: hidden;
+  }
+  .print-menu.open { display: block; }
+  .print-menu-title {
+    padding: 10px 14px 6px; font-size: 11px; font-weight: 700;
+    color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .print-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; font-size: 13px;
+    color: var(--text); transition: background 0.15s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .print-menu-item:hover { background: rgba(79,142,247,0.12); color: var(--accent); }
+  .print-menu-item .pm-icon { font-size: 16px; flex-shrink: 0; }
+  .print-menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* MODE CLAIR */
+  body.light {
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --surface2: #e4e7f2;
+    --border: #c8cde0;
+    --text: #1a1d2e;
+    --text2: #5a6080;
+  }
+  body.light header {
+    background: linear-gradient(135deg, #ffffff 0%, #e4e7f2 100%);
+  }
+  body.light .steps-bar { background: #ffffff; }
+  body.light .privacy-banner {
+    background: linear-gradient(90deg, rgba(62,207,142,0.08), rgba(79,142,247,0.08));
+  }
+
+  /* STEP INDICATOR */
+  .steps-bar {
+    display: flex; align-items: center;
+    gap: 0; padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    color: var(--text2); cursor: default; white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .step-item.active { background: var(--accent); color: #fff; }
+  .step-item.done { color: var(--green); }
+  .step-sep { color: var(--border); margin: 0 2px; font-size: 12px; }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .card h2 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+  .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text2); }
+
+  /* FORM - Sans OBS-04 (3 critères) */
+  .student-row {
+    display: grid;
+    grid-template-columns: 26px 1fr 46px 58px 58px 58px 68px 30px;
+    gap: 5px; margin-bottom: 6px; align-items: center;
+  }
+  .student-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 7px;
+    border-radius: 6px;
+    font-size: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+  .student-row input:focus { outline: none; border-color: var(--accent); }
+  .student-row input.err { border-color: var(--red); }
+  .student-row input.perf-low  { border-color: var(--red);    color: #f79090; }
+  .student-row input.perf-ok   { border-color: var(--orange); color: #f7c94f; }
+  .student-row input.perf-high { border-color: var(--green);  color: #3ecf8e; }
+  .row-num { color: var(--text2); font-size: 11px; text-align: center; }
+  .form-header {
+    display: grid;
+    grid-template-columns: 26px 1fr 46px 58px 58px 58px 68px 30px;
+    gap: 5px; margin-bottom: 8px;
+  }
+  .form-header span { font-size: 10px; color: var(--text2); font-weight: 600; text-align: center; }
+  .form-header span:nth-child(2) { text-align: left; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none;
+    transition: all 0.2s; text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7be0; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-success { background: var(--green); color: #000; }
+  .btn-success:hover { background: #2eb87a; }
+  .btn-danger  { background: rgba(247,95,95,0.15); color: var(--red); border: 1px solid rgba(247,95,95,0.3); }
+  .btn-danger:hover  { background: rgba(247,95,95,0.25); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Inputs fichier masqués */
+  #csv-input-unique,
+  #import-session-input, #comp-csv-avant, #comp-csv-apres { display: none; }
+
+  /* Import btns row */
+  .import-btns-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .import-btn-card {
+    flex: 1 1 200px;
+    min-width: 0;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: transparent;
+  }
+  .import-btn-card:hover {
+    border-color: var(--accent);
+    background: rgba(79,142,247,0.06);
+  }
+  .import-btn-card.import-btn-unique {
+    flex: 1 1 100%;
+    padding: 18px 14px;
+    border-color: var(--accent);
+  }
+  .import-btn-card.import-btn-unique:hover {
+    border-color: var(--green);
+    background: rgba(62,207,142,0.06);
+  }
+  .import-btn-card .ibc-icon { font-size: 22px; display: block; margin-bottom: 5px; }
+  .import-btn-card .ibc-title {
+    font-size: 12px; font-weight: 700;
+    color: var(--text); margin-bottom: 3px;
+  }
+  .import-btn-card.import-btn-unique .ibc-title { font-size: 14px; }
+  .import-btn-card .ibc-sub {
+    font-size: 10px; color: var(--text2); line-height: 1.5;
+  }
+
+  /* Session mgmt toolbar */
+  .session-toolbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .session-toolbar .st-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    white-space: nowrap;
+    margin-right: 4px;
+  }
+  .session-toolbar .st-sep {
+    width: 1px; height: 22px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ALERT */
+  .alert {
+    padding: 10px 14px; border-radius: 7px;
+    font-size: 12px; margin-bottom: 12px;
+  }
+  .alert-info { background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); color: #90b8ff; }
+  .alert-warn { background: rgba(247,156,79,0.15); border: 1px solid rgba(247,156,79,0.3); color: #f7c94f; }
+  .alert-err  { background: rgba(247,95,95,0.15);  border: 1px solid rgba(247,95,95,0.3);  color: #f79090; }
+  .alert-success { background: rgba(62,207,142,0.15); border: 1px solid rgba(62,207,142,0.3); color: #3ecf8e; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: var(--surface2); color: var(--text2);
+    padding: 8px 10px; text-align: left; font-weight: 600;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .data-table td {
+    padding: 7px 10px; border-bottom: 1px solid rgba(46,50,80,0.5);
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: rgba(79,142,247,0.05); }
+  .data-table tr.prof-A td { background: rgba(247,95,95,0.06); }
+  .data-table tr.prof-B td { background: rgba(247,156,79,0.06); }
+  .data-table tr.prof-C td { background: rgba(62,207,142,0.06); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-A { background: rgba(247,95,95,0.2); color: #f79090; }
+  .badge-B { background: rgba(247,156,79,0.2); color: #f7c94f; }
+  .badge-C { background: rgba(62,207,142,0.2); color: #3ecf8e; }
+  
+  /* BADGES POUR NOTE OFFICIELLE */
+  .badge-note-debutant { background: #f75f5f; color: #fff; }
+  .badge-note-intermediaire { background: #f79c4f; color: #fff; }
+  .badge-note-avance { background: #4f8ef7; color: #fff; }
+  .badge-note-excellent { background: #3ecf8e; color: #000; }
+
+  /* STAT CARDS */
+  .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 10px; margin-bottom: 18px; }
+  .stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; text-align: center;
+  }
+  .stat-card .val { font-size: 24px; font-weight: 800; }
+  .stat-card .lbl { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .stat-card.A .val { color: var(--red); }
+  .stat-card.B .val { color: var(--orange); }
+  .stat-card.C .val { color: var(--green); }
+  .stat-card.avg .val { color: var(--accent); }
+
+  /* STAT CARDS NOTE OFFICIELLE */
+  .stat-card-note { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-card-note .val { font-size: 24px; font-weight: 800; }
+  .stat-card-note .lbl { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .stat-card-note.excellent .val { color: var(--green); }
+  .stat-card-note.avance .val { color: var(--accent); }
+  .stat-card-note.intermediaire .val { color: var(--orange); }
+  .stat-card-note.debutant .val { color: var(--red); }
+
+  /* AXES SELECTION */
+  .axe-item {
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .axe-item:hover { border-color: var(--accent); }
+  .axe-item.selected { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+  .axe-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--accent); }
+  .axe-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .axe-meta { font-size: 11px; color: var(--text2); }
+
+  /* SLIDER */
+  .slider-wrap { padding: 8px 0 16px; }
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: var(--border); border-radius: 3px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: var(--accent); border-radius: 50%; cursor: pointer;
+  }
+  .slider-labels { display: flex; justify-content: space-between; color: var(--text2); font-size: 11px; margin-top: 4px; }
+  .slider-display {
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin-top: 14px;
+    font-size: 13px;
+  }
+  .slider-display strong { color: var(--accent2); }
+
+  /* PLANNING */
+  .seq-block { margin-bottom: 22px; }
+  .seq-header {
+    background: var(--accent); color: #fff;
+    padding: 10px 14px; border-radius: 8px 8px 0 0;
+    font-weight: 700; font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .seq-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .seq-table th {
+    background: var(--surface2); padding: 8px 8px;
+    border: 1px solid var(--border); color: var(--text2);
+    font-size: 10px;
+  }
+  .seq-table td {
+    padding: 8px 8px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .seq-table td.grp-A { background: rgba(247,95,95,0.05); }
+  .seq-table td.grp-B { background: rgba(247,156,79,0.05); }
+  .seq-table td.grp-C { background: rgba(62,207,142,0.05); }
+  .sa-name { font-weight: 700; color: var(--accent2); }
+  .consigne { color: var(--text2); font-size: 10px; margin-top: 3px; }
+  .critere { color: var(--green); font-size: 10px; margin-top: 3px; font-style: italic; }
+  .indicatif {
+    background: rgba(139,145,181,0.1); border-left: 3px solid var(--text2);
+    padding: 6px 10px; font-size: 10px; color: var(--text2);
+    margin-top: 4px; border-radius: 0 4px 4px 0;
+  }
+
+  /* DECISION BOX */
+  .decision-box {
+    border: 2px solid var(--accent2);
+    border-radius: 10px; padding: 14px;
+    background: rgba(247,201,79,0.06);
+    margin-bottom: 18px;
+  }
+  .decision-box p { font-size: 13px; }
+  .decision-box strong { color: var(--accent2); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ===== TUTORIEL ===== */
+  .tuto-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .tuto-overlay.open { display: flex; }
+  .tuto-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; width: 92%; max-width: 500px;
+    overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .tuto-header {
+    background: var(--accent); padding: 18px 22px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tuto-header .tuto-logo {
+    width: 38px; height: 38px; background: rgba(255,255,255,0.2);
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .tuto-header h2 { font-size: 15px; font-weight: 800; color: #fff; margin: 0; }
+  .tuto-header p  { font-size: 10px; color: rgba(255,255,255,0.75); margin: 2px 0 0; }
+  .tuto-steps-dots {
+    display: flex; justify-content: center; gap: 6px; padding: 12px 22px 0;
+  }
+  .tuto-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); transition: all 0.3s;
+  }
+  .tuto-dot.active { background: var(--accent); transform: scale(1.3); }
+  .tuto-dot.done   { background: var(--green); }
+  .tuto-slide { display: none; padding: 16px 22px 6px; }
+  .tuto-slide.active { display: block; }
+  .tuto-slide .tuto-icon { font-size: 32px; text-align: center; margin-bottom: 8px; display: block; }
+  .tuto-slide h3 { font-size: 14px; font-weight: 800; color: var(--accent2); margin-bottom: 7px; text-align: center; }
+  .tuto-slide p { font-size: 12px; color: var(--text2); line-height: 1.65; margin-bottom: 7px; }
+  .tuto-slide .tuto-tip {
+    background: rgba(79,142,247,0.1); border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 7px 12px;
+    font-size: 11px; color: var(--text); margin-top: 7px;
+  }
+  .tuto-slide .tuto-badges {
+    display: flex; gap: 8px; flex-wrap: wrap; margin: 7px 0;
+    justify-content: center;
+  }
+  .tuto-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px 16px; border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+  .tuto-footer .tuto-skip { font-size: 11px; color: var(--text2); cursor: pointer; background: none; border: none; text-decoration: underline; }
+  .tuto-footer .tuto-skip:hover { color: var(--text); }
+  .tuto-nav { display: flex; gap: 8px; }
+  .tuto-btn-prev { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .tuto-btn-prev:hover { color: var(--text); border-color: var(--accent); }
+  .tuto-btn-next { background: var(--accent); border: none; color: #fff; padding: 7px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .tuto-btn-next:hover { background: #3a7be0; }
+  .tuto-progress { height: 3px; background: var(--border); }
+  .tuto-progress-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
+
+  /* SAUVEGARDE INDICATOR */
+  #save-indicator {
+    position: fixed; bottom: 16px; right: 16px;
+    background: var(--green); color: #000;
+    padding: 7px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    opacity: 0; transition: opacity 0.4s;
+    z-index: 999; pointer-events: none;
+  }
+
+  /* MODAL FICHE ELEVE */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; width: 92%; max-width: 540px;
+    max-height: 90vh; overflow-y: auto; position: relative;
+  }
+  .modal-box h2 { font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--accent2); }
+  .modal-close {
+    position: absolute; top: 12px; right: 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; font-size: 12px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .radar-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+  .fiche-obs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .fiche-obs-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .fiche-obs-card .foc-lbl { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
+  .fiche-obs-card .foc-val { font-size: 18px; font-weight: 800; }
+  .fiche-obs-card.A .foc-val { color: var(--red); }
+  .fiche-obs-card.B .foc-val { color: var(--orange); }
+  .fiche-obs-card.C .foc-val { color: var(--green); }
+  .fiche-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(46,50,80,0.3); font-size: 12px; }
+  .fiche-row:last-child { border-bottom: none; }
+  .fiche-row span:first-child { color: var(--text2); }
+  .fiche-row span:last-child { font-weight: 700; }
+  .fiche-notes {
+    width: 100%; margin-top: 12px; padding: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 12px;
+    resize: vertical; min-height: 65px; font-family: inherit;
+  }
+  .fiche-notes:focus { outline: none; border-color: var(--accent); }
+  .tbody-clickable tr { cursor: pointer; }
+  .tbody-clickable tr:hover td { background: rgba(79,142,247,0.12) !important; }
+
+  /* ===== TIMELINE PROGRESSION ===== */
+  .timeline-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .timeline-wrap h3 { font-size: 12px; font-weight: 700; color: var(--accent2); margin-bottom: 12px; }
+  .timeline-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .tl-seance { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
+  .tl-check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text2); transition: all 0.25s; }
+  .tl-check.done { background: var(--green); border-color: var(--green); color: #000; }
+  .tl-check.current { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.25); }
+  .tl-lbl { font-size: 10px; color: var(--text2); }
+  .tl-progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 7px; }
+  .tl-progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.4s ease; }
+  .tl-stats { font-size: 11px; color: var(--text2); display: flex; gap: 14px; flex-wrap: wrap; }
+  .tl-stats strong { color: var(--text); }
+
+  /* ===== COMPARAISON AVANT/APRES ===== */
+  .comp-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .comp-drop { border: 2px dashed var(--border); border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .comp-drop:hover { border-color: var(--accent); }
+  .comp-drop.loaded { border-color: var(--green); border-style: solid; }
+  .comp-drop p { color: var(--text2); font-size: 11px; margin-top: 4px; }
+  .comp-drop .comp-icon { font-size: 24px; }
+  .comp-drop .comp-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+  .comp-table th { background: var(--surface2); padding: 7px 8px; border: 1px solid var(--border); color: var(--text2); font-size: 10px; }
+  .comp-table td { padding: 6px 8px; border: 1px solid var(--border); vertical-align: middle; }
+  .comp-table tr:hover td { background: rgba(79,142,247,0.05); }
+  .delta-pos { color: var(--green); font-weight: 700; }
+  .delta-neg { color: var(--red); font-weight: 700; }
+  .delta-neu { color: var(--text2); }
+  .comp-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; margin: 12px 0; }
+  .comp-sum-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; }
+  .comp-sum-card .csv { font-size: 10px; color: var(--text2); }
+  .comp-sum-card .val { font-size: 18px; font-weight: 800; margin: 2px 0; }
+  .comp-sum-card.pos .val { color: var(--green); }
+  .comp-sum-card.neg .val { color: var(--red); }
+  .comp-sum-card.neu .val { color: var(--accent); }
+
+  /* ===== GESTION MULTI-CLASSES ===== */
+  .classes-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .classes-bar .cb-label { font-size: 11px; color: var(--text2); font-weight: 700; white-space: nowrap; }
+  .classe-tab { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .classe-tab:hover { border-color: var(--accent); color: var(--text); }
+  .classe-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .classe-tab.add-btn { border-style: dashed; }
+  .classe-tab.add-btn:hover { background: rgba(79,142,247,0.1); }
+  .classe-tab-wrap { display: flex; align-items: center; gap: 3px; }
+  .classe-del { width: 16px; height: 16px; border-radius: 50%; background: rgba(247,95,95,0.3); border: none; color: #f79090; font-size: 10px; cursor: pointer; line-height: 1; display: none; align-items: center; justify-content: center; padding: 0; }
+  .classe-tab-wrap:hover .classe-del { display: inline-flex; }
+
+  /* ===== MODE TABLETTE TERRAIN ===== */
+  .tablet-toggle.on { background: var(--orange); color: #000; border-color: var(--orange); }
+  body.tablet-mode .student-row { grid-template-columns: 26px 1fr 42px 50px 50px 50px 62px 30px; margin-bottom: 10px; }
+  body.tablet-mode .student-row input[data-obs] { display: none; }
+  body.tablet-mode .obs-btn-group { display: flex !important; }
+  body.tablet-mode .student-row input[type=number] { display: block !important; }
+  .obs-btn-group { display: none; gap: 2px; }
+  .obs-btn { flex: 1; padding: 8px 0; border-radius: 6px; font-size: 13px; font-weight: 800; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center; }
+  .obs-btn:hover { border-color: var(--accent); }
+  .obs-btn.sel-A { background: rgba(247,95,95,0.3); color: #f75f5f; border-color: #f75f5f; }
+  .obs-btn.sel-B { background: rgba(247,156,79,0.3); color: #f79c4f; border-color: #f79c4f; }
+  .obs-btn.sel-C { background: rgba(62,207,142,0.3); color: #3ecf8e; border-color: #3ecf8e; }
+  body.tablet-mode .form-header { grid-template-columns: 26px 1fr 42px 50px 50px 50px 62px 30px; }
+  body:not(.tablet-mode) .obs-btn-group { display: none !important; }
+
+  /* ===== MODAL CONFIRMATION ===== */
+  .confirm-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 2000;
+    align-items: center; justify-content: center;
+  }
+  .confirm-modal.open { display: flex; }
+  .confirm-box {
+    background: var(--surface); border: 1px solid var(--red);
+    border-radius: 14px; padding: 28px; width: 90%; max-width: 400px;
+    text-align: center;
+  }
+  .confirm-box .cf-icon { font-size: 36px; margin-bottom: 10px; }
+  .confirm-box h3 { color: var(--red); margin-bottom: 10px; font-size: 16px; }
+  .confirm-box p { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* MISC */
+  .obs-analysis { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+  .obs-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  .obs-card .obs-title { font-size: 10px; font-weight: 700; color: var(--text2); margin-bottom: 5px; }
+  .obs-card .obs-val { font-size: 20px; font-weight: 800; }
+  .obs-card .obs-status { font-size: 10px; margin-top: 3px; }
+  .obs-card.lacune .obs-val { color: var(--red); }
+  .obs-card.cours .obs-val { color: var(--orange); }
+  .obs-card.bon .obs-val { color: var(--green); }
+  .groupe-need { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .cycle-summary { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .cycle-summary th { background: var(--surface2); padding: 7px; border: 1px solid var(--border); color: var(--text2); }
+  .cycle-summary td { padding: 7px; border: 1px solid var(--border); }
+  .reco-box { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3); border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 12px; color: var(--text); line-height: 1.6; }
+  .table-wrap { overflow-x: auto; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .student-row, .form-header { grid-template-columns: 18px 1fr 34px 40px 40px 40px 52px 26px; font-size: 10.5px; }
+    .stat-cards { grid-template-columns: 1fr 1fr; }
+    main { padding: 10px; }
+    .seq-table { font-size: 10px; }
+    .obs-analysis { grid-template-columns: 1fr 1fr; }
+    .comp-zone { grid-template-columns: 1fr; }
+    .header-btns { width: 100%; }
+    .session-toolbar { gap: 6px; }
+    header { padding: 10px 12px; }
+    .import-btn-card { flex: 1 1 100%; }
+    .fiche-obs { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 380px) {
+    .student-row, .form-header { grid-template-columns: 16px 1fr 30px 36px 36px 36px 48px 22px; }
+    .btn { padding: 8px 10px; font-size: 11px; }
+  }
+
+  /* ================================================================
+     IMPRESSION — GRILLE TERRAIN ÉPURÉE (Recto/Verso A4)
+     ================================================================ */
+  @media print {
+    /* Masquage des éléments UI */
+    header .hbtn, header .tablet-toggle, .steps-bar, .btn,
+    .import-zone, input[type=range], form, #step1-form, .no-print,
+    #modal-fiche, #save-indicator, .modal-overlay, .modal-close,
+    .session-toolbar, .classes-bar, .privacy-banner,
+    .section:not(.active) { display: none !important; }
+    
+    /* Fond blanc et couleurs sobres */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body { background: #fff !important; color: #111 !important; font-size: 10pt; }
+    main { max-width: 100% !important; padding: 0 !important; }
+    .card { 
+      border: 1px solid #ccc !important; 
+      background: #fff !important; 
+      margin-bottom: 8px !important; 
+      page-break-inside: avoid;
+      box-shadow: none !important;
+      padding: 10px 12px !important;
+    }
+    .card h2 { 
+      color: #1a1d2e !important; 
+      border-bottom: 1px solid #ccc; 
+      padding-bottom: 4px; 
+      font-size: 12pt; 
+    }
+    .data-table { font-size: 8.5pt; }
+    .data-table th { 
+      background: #e8eaf2 !important; 
+      color: #222 !important; 
+      border: 1px solid #aaa !important;
+      padding: 4px 5px;
+    }
+    .data-table td { 
+      border: 1px solid #ccc !important; 
+      padding: 3px 5px;
+      color: #111 !important;
+    }
+    .data-table tr.prof-A td { background: #fff0f0 !important; }
+    .data-table tr.prof-B td { background: #fff8e8 !important; }
+    .data-table tr.prof-C td { background: #f0fff8 !important; }
+    .badge { 
+      background: #eee !important; 
+      color: #222 !important; 
+      border: 1px solid #aaa !important; 
+    }
+    .badge-A, .badge-B, .badge-C { background: #f5f5f5 !important; color: #222 !important; }
+
+    /* Légende en bas de page (verso) */
+    .legende-print {
+      display: block !important;
+      margin-top: 16px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      font-size: 8pt;
+      color: #333;
+    }
+    .legende-print table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      font-size: 7.5pt;
+      margin-top: 4px;
+    }
+    .legende-print th, .legende-print td {
+      border: 1px solid #bbb;
+      padding: 3px 6px;
+      text-align: left;
+    }
+    .legende-print th { background: #e8eaf2; }
+    .legende-print .seuils { margin-top: 8px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .legende-print .seuils strong { color: #000; }
+
+    /* Ajustements A4 */
+    @page { 
+      margin: 1.2cm; 
+      size: A4 portrait;
+    }
+    .section.active { display: block !important; }
+    .seq-header { background: #4f8ef7 !important; color: #fff !important; }
+    .seq-table td.grp-A { background: #fff0f0 !important; }
+    .seq-table td.grp-B { background: #fff8e8 !important; }
+    .seq-table td.grp-C { background: #f0fff8 !important; }
+    .stat-card { background: #f5f5f5 !important; border: 1px solid #ccc !important; }
+    .stat-card.A .val { color: #c0392b !important; }
+    .stat-card.B .val { color: #e67e22 !important; }
+    .stat-card.C .val { color: #27ae60 !important; }
+    .stat-card.avg .val { color: #2980b9 !important; }
+    .decision-box { border-color: #e67e22 !important; background: #fffbf0 !important; }
+    .reco-box { background: #eef4ff !important; border-color: #4f8ef7 !important; color: #111 !important; }
+    .table-wrap { overflow: visible !important; }
+    .sa-name { color: #b8860b !important; }
+    .critere { color: #27ae60 !important; }
+    .comp-sum-card { background: #f5f5f5 !important; border-color: #ccc !important; }
+    .comp-sum-card.pos .val { color: #27ae60 !important; }
+    .comp-sum-card.neg .val { color: #c0392b !important; }
+    .delta-pos { color: #27ae60 !important; }
+    .delta-neg { color: #c0392b !important; }
+    .seq-block { page-break-inside: avoid; }
+  }
+
+  /* Version écran : la légende n'apparaît que dans la version imprimée */
+  .legende-print { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     COUCHE UI : Indicateurs, modals, overlays
+     ============================================================ -->
+
+<!-- INDICATEUR SAUVEGARDE -->
+<div id="save-indicator">💾 Sauvegardé</div>
+
+<!-- MODAL CONFIRMATION RESET -->
+<div class="confirm-modal" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="cf-icon">⚠️</div>
+    <h3>Réinitialiser la session</h3>
+    <p>Cette action effacera <strong>toutes les données</strong> de toutes les classes (élèves, observations, planification, notes).<br><br>Cette opération est <strong>irréversible</strong>. Avez-vous exporté une sauvegarde ?</p>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" onclick="fermerConfirm()">↩ Annuler</button>
+      <button class="btn btn-danger"    onclick="confirmerReset()">🗑 Tout effacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIEL PREMIERE VISITE -->
+<div class="tuto-overlay" id="tuto-overlay">
+  <div class="tuto-box">
+    <div class="tuto-header">
+      <div class="tuto-logo">⚙️</div>
+      <div>
+        <h2>Bienvenue dans l'Outil ADP 2026</h2>
+        <p>Lancer de Poids DI-POI · CRMEF Inezgane · EPS</p>
+      </div>
+    </div>
+    <div class="tuto-progress"><div class="tuto-progress-fill" id="tuto-prog-fill" style="width:14%"></div></div>
+    <div class="tuto-steps-dots" id="tuto-dots"></div>
+
+    <div class="tuto-slide active" id="tuto-slide-0">
+      <span class="tuto-icon">👋</span>
+      <h3>Bienvenue !</h3>
+      <p>Cet outil vous accompagne dans l'aide à la décision pédagogique pour le cycle de <strong>Lancer de Poids</strong>. Il analyse les données de votre classe et génère automatiquement un plan de cycle différencié.</p>
+      <div class="tuto-tip">🔒 <strong>Vos données restent confidentielles</strong> sur votre appareil. Rien n'est envoyé sur Internet. L'outil fonctionne aussi hors connexion.</div>
+    </div>
+    <div class="tuto-slide" id="tuto-slide-1">
+      <span class="tuto-icon">📋</span>
+      <h3>① Diagnostic de classe</h3>
+      <p>Saisissez les données de vos élèves : nom et 3 observables officiels (Trajet, Trajectoire, Équilibre). La Performance est saisie en mètres.</p>
+      <div class="tuto-badges">
+        <span class="badge badge-A">A = 3/10</span>
+        <span class="badge badge-B">B = 6/10</span>
+        <span class="badge badge-C">C = 9/10</span>
+        <span style="font-size:11px;color:var(--text2);align-self:center;">ou valeur 0–10</span>
+      </div>
+      <div class="tuto-tip">💡 Cliquer sur un élève dans le tableau ouvre sa fiche détaillée.</div>
+    </div>
+    <div class="tuto-slide" id="tuto-slide-2">
+      <span class="tuto-icon">🎯</span>
+      <h3>② Axes prioritaires</h3>
+      <p>L'outil analyse les lacunes collectives et classe automatiquement les axes pédagogiques par pertinence. Sélectionnez <strong>3 ou 4 axes</strong>.</p>
+      <div class="tuto-tip">📊 Le % affiché = part d'élèves en Profil A sur l'observable lié.</div>
+    </div>
+    <div class="tuto-slide" id="tuto-slide-3">
+      <span class="tuto-icon">📅</span>
+      <h3>③ ④ Paramétrage & Planification</h3>
+      <p>Choisissez le nombre de séances (6 à 10). L'outil génère un <strong>tableau différencié A/B/C</strong> séance par séance.</p>
+      <div class="tuto-tip">🔄 Réévaluez après la séquence du milieu.</div>
+    </div>
+    <div class="tuto-slide" id="tuto-slide-4">
+      <span class="tuto-icon">⚙️</span>
+      <h3>Fonctionnalités disponibles</h3>
+      <div class="tuto-tip" style="margin-top:5px;">📚 <strong>Multi-classes</strong> — gérez plusieurs classes sans ressaisir</div>
+      <div class="tuto-tip" style="margin-top:5px;">📱 <strong>Mode tablette</strong> — boutons A/B/C pour saisie terrain</div>
+      <div class="tuto-tip" style="margin-top:5px;">💾 <strong>Export/Import JSON</strong> — sauvegarde et transfert complet</div>
+      <div class="tuto-tip" style="margin-top:5px;">🗃 <strong>Données exemple</strong> — tester immédiatement sans ressaisir</div>
+    </div>
+    <div class="tuto-slide" id="tuto-slide-5">
+      <span class="tuto-icon">🚀</span>
+      <h3>Vous êtes prêt !</h3>
+      <p>Commencez à l'<strong>Étape 1 — Diagnostic</strong>. Ou chargez les <strong>données d'exemple</strong> pour tester sans ressaisir.</p>
+      <div class="tuto-tip">💾 Les données sont <strong>sauvegardées automatiquement</strong> à chaque saisie dans votre navigateur.</div>
+    </div>
+
+    <div class="tuto-footer">
+      <button class="tuto-skip" onclick="fermerTutoriel()">Passer le tutoriel</button>
+      <div class="tuto-nav">
+        <button class="tuto-btn-prev" id="tuto-prev" onclick="tutoNav(-1)" style="display:none;">‹ Précédent</button>
+        <button class="tuto-btn-next" id="tuto-next" onclick="tutoNav(1)">Suivant ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FICHE ELEVE -->
+<div class="modal-overlay" id="modal-fiche" onclick="fermerFiche(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('modal-fiche').classList.remove('open')">✕ Fermer</button>
+    <h2 id="fiche-titre">Fiche élève</h2>
+    <div class="radar-wrap"><canvas id="fiche-radar" width="200" height="200"></canvas></div>
+    <div class="fiche-obs" id="fiche-obs"></div>
+    <div id="fiche-details"></div>
+    <textarea class="fiche-notes" id="fiche-notes" placeholder="Notes libres sur cet élève..." oninput="sauvegarderNote()"></textarea>
+  </div>
+</div>
+
+<!-- ============================================================
+     BANDEAU CONFIDENTIALITÉ (condition 2)
+     ============================================================ -->
+<div class="privacy-banner" id="privacy-banner">
+  <span>🔒</span>
+  <span><strong>Données privées et locales</strong> — Toutes vos données restent stockées uniquement sur cet appareil (localStorage). Rien n'est envoyé à un serveur. Fonctionne également hors connexion.</span>
+  <button class="pb-close" onclick="fermerBandeauPrivacy()" title="Fermer">✕</button>
+</div>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <div class="logo">⚙️</div>
+  <div>
+    <h1>Outil ADP 2026 — Lancer de Poids (DI-POI) v2</h1>
+    <p>CRMEF Inezgane · EPS · Aide à la décision pédagogique · Barème officiel intégré</p>
+  </div>
+  <div class="header-btns">
+    <button class="hbtn" onclick="goStep(1)">🏠 Accueil</button>
+    <button class="hbtn demo-btn" onclick="chargerDonneesDemoConfirm()" title="Charger 12 élèves d'exemple">🗃 Démo</button>
+    <button class="hbtn" onclick="ouvrirTutoriel()" title="Aide">❓ Aide</button>
+    <button class="hbtn" id="theme-btn" onclick="toggleTheme()">☀️ Mode clair</button>
+    <button class="hbtn tablet-toggle" id="tablet-toggle" onclick="toggleTabletMode()">📱 Tablette</button>
+
+    <!-- Export / Import / Reset session (conditions 5, 6) -->
+    <button class="hbtn" onclick="exporterSession()" title="Télécharger toute la session en JSON">⬇ Export JSON</button>
+    <button class="hbtn" onclick="document.getElementById('import-session-input').click()" title="Restaurer une session depuis un fichier JSON">⬆ Import JSON</button>
+    <input type="file" id="import-session-input" accept=".json" onchange="importerSession(event)">
+    <button class="hbtn danger" onclick="demanderReset()" title="Réinitialiser toutes les données">🗑 Réinitialiser</button>
+
+    <!-- Menu impression -->
+    <div class="print-menu-wrap" id="print-menu-wrap">
+      <button class="hbtn" onclick="togglePrintMenu()">🖨 Imprimer ▾</button>
+      <div class="print-menu" id="print-menu">
+        <div class="print-menu-title">Imprimer la page actuelle</div>
+        <button class="print-menu-item" onclick="imprimerPage()"><span class="pm-icon">🖨</span> Page courante</button>
+        <div class="print-menu-sep"></div>
+        <div class="print-menu-title">Imprimer une section</div>
+        <button class="print-menu-item" onclick="imprimerSection(1)"><span class="pm-icon">📋</span> ① Diagnostic</button>
+        <button class="print-menu-item" onclick="imprimerSection(2)"><span class="pm-icon">🎯</span> ② Axes prioritaires</button>
+        <button class="print-menu-item" onclick="imprimerSection(3)"><span class="pm-icon">⚙️</span> ③ Paramétrage</button>
+        <button class="print-menu-item" onclick="imprimerSection(4)"><span class="pm-icon">📅</span> ④ Planification</button>
+        <button class="print-menu-item" onclick="imprimerSection(5)"><span class="pm-icon">📊</span> ⑤ Comparaison</button>
+        <div class="print-menu-sep"></div>
+        <button class="print-menu-item" onclick="imprimerTout()"><span class="pm-icon">📄</span> Rapport complet</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STEP INDICATOR -->
+<div class="steps-bar">
+  <div class="step-item active" id="si1">① Diagnostic</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si2">② Axes prioritaires</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si3">③ Paramétrage</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si4">④ Planification</div>
+  <span class="step-sep">›</span>
+  <div class="step-item" id="si5">⑤ Comparaison</div>
+</div>
+
+<!-- BARRE GESTION CLASSES -->
+<div class="classes-bar" id="classes-bar">
+  <span class="cb-label">📚 Classes :</span>
+  <div id="classes-tabs"></div>
+  <button class="classe-tab add-btn" onclick="ajouterClasse()">+ Nouvelle classe</button>
+</div>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main>
+
+<!-- SESSION TOOLBAR (conditions 5, 6, 8) -->
+<div class="session-toolbar no-print">
+  <span class="st-label">🗂 Session :</span>
+  <button class="btn btn-secondary" onclick="exporterSession()" style="font-size:11px;padding:6px 12px;">⬇ Export JSON (sauvegarde)</button>
+  <button class="btn btn-secondary" onclick="document.getElementById('import-session-input').click()" style="font-size:11px;padding:6px 12px;">⬆ Import JSON (restaurer)</button>
+  <div class="st-sep"></div>
+  <button class="btn btn-secondary demo-btn" onclick="chargerDonneesDemoConfirm()" style="font-size:11px;padding:6px 12px;border-color:var(--accent2);color:var(--accent2);">🗃 Charger données d'exemple</button>
+  <div class="st-sep"></div>
+  <button class="btn btn-danger" onclick="demanderReset()" style="font-size:11px;padding:6px 12px;">🗑 Nouvelle session</button>
+</div>
+
+<!-- ===== ÉTAPE 1 ===== -->
+<div class="section active" id="step1">
+  <div class="card">
+    <h2>📋 Saisie des données élèves</h2>
+
+    <div class="import-btns-row">
+      <div class="import-btn-card import-btn-unique" onclick="document.getElementById('csv-input-unique').click()" title="Importer un fichier CSV (liste d'élèves ou grille complète)">
+        <span class="ibc-icon">📂</span>
+        <div class="ibc-title">Importation de fichier CSV</div>
+        <div class="ibc-sub">Détection automatique : <strong>Nom/Prénom · Sexe · OBS-01 · OBS-02 · OBS-03 · PERF (m)</strong></div>
+      </div>
+    </div>
+
+    <input type="file" id="csv-input-unique" accept=".csv,.txt" onchange="importUniversalCSV(event)">
+
+    <div id="import-msg"></div>
+
+    <div class="alert alert-info" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <label for="niveau-select" style="font-weight:700;white-space:nowrap;">🎓 Niveau scolaire de la classe (barème officiel) :</label>
+      <select id="niveau-select" onchange="changerNiveauClasse(this.value)" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;">
+        <option value="1AC">1AC</option>
+        <option value="2AC">2AC</option>
+        <option value="3AC">3AC</option>
+        <option value="TC">Tronc Commun (TC)</option>
+        <option value="1BAC">1BAC</option>
+        <option value="2BAC">2BAC</option>
+      </select>
+      <span style="font-size:11px;color:var(--text2);">Sert au calcul de la note barème officielle (poids : Garçons 4 kg · Filles 3 kg).</span>
+    </div>
+
+    <div class="form-header">
+      <span>#</span><span>Prénom (obligatoire)</span>
+      <span>Sexe</span>
+      <span>OBS-01<br><small>Trajet</small></span>
+      <span>OBS-02<br><small>Trajectoire</small></span>
+      <span>OBS-03<br><small>Équilibre</small></span>
+      <span>PERF<br><small>en mètres</small></span>
+      <span></span>
+    </div>
+    <div id="rows-container"></div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="addRow()">+ Ajouter un élève</button>
+      <button class="btn btn-secondary" onclick="clearForm()">🗑 Vider</button>
+      <button class="btn btn-primary"   onclick="analyser()">▶ Analyser la classe</button>
+      <button class="btn btn-secondary" onclick="exporterGrillePDF()" title="Exporter la grille remplie en PDF (40 places)">📄 Export PDF Grille</button>
+      <button class="btn btn-secondary" onclick="exportCSV()" id="btn-export" style="display:none;">⬇ Export CSV résultats</button>
+    </div>
+    <div id="form-err"></div>
+
+    <div class="alert alert-info" style="margin-top:12px;">
+      <strong>Légende :</strong> Saisir A/B/C ou une valeur 0–10 pour OBS-01, OBS-02, OBS-03.<br>
+      A = 3 · B = 6 · C = 9 · Seuils de profil global : A &lt; 5,0 · B entre 5,0 et 7,4 · C ≥ 7,5 · Sexe : G (Garçon) ou F (Fille) — utilisé uniquement pour le barème officiel.<br>
+      <strong>Note procédurale (barème) :</strong> Calculée automatiquement depuis la performance (PERF) et le sexe, sur 6 points (Collège : 1AC, 2AC, 3AC) ou sur 7 points (Lycée : TC, 1BAC, 2BAC) selon le niveau sélectionné ci-dessus.
+    </div>
+  </div>
+
+  <!-- Results step 1 -->
+  <div id="results1" style="display:none;">
+    <div class="card">
+      <h2>📊 Bilan de classe</h2>
+      <div class="stat-cards" id="stat-cards"></div>
+      <!-- Bloc Bilan performances officielles -->
+      <div id="bilan-officiel" style="margin-top:16px;"></div>
+      <div class="obs-analysis" id="obs-analysis"></div>
+      <div class="decision-box" id="decision-box"></div>
+      <div id="groupes-besoin"></div>
+    </div>
+    <div class="card">
+      <h2>🗂 Tableau individuel</h2>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:7px;">👆 Cliquer sur un élève pour sa fiche détaillée</p>
+      <div class="table-wrap">
+        <table class="data-table" id="table-individuel">
+          <thead>
+            <tr>
+              <th>Rang</th><th>Prénom</th>
+              <th>Sexe</th>
+              <th>OBS-01</th><th>OBS-02</th><th>OBS-03</th>
+              <th>PERF (m)</th><th>Note proc.<br><small id="th-note-max">/6 ou /7</small></th><th>Interprétation</th>
+              <th>Profil</th><th>Profil détaillé</th>
+              <th>Lacune(s)</th><th>Axe prioritaire</th><th>SA</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-individuel" class="tbody-clickable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-success" onclick="goStep(2)">Passer à l'étape 2 — Axes prioritaires ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 2 ===== -->
+<div class="section" id="step2">
+  <div class="card">
+    <h2>🎯 Sélection des axes prioritaires</h2>
+    <div class="alert alert-warn">Sélectionnez <strong>3 ou 4 axes</strong> maximum. Les axes sont classés par pertinence selon les lacunes de votre classe.</div>
+    <div id="axes-list"></div>
+    <div id="axes-msg" style="margin-top:10px;"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(1)">‹ Retour</button>
+      <button class="btn btn-success" id="btn-step3" onclick="goStep(3)" disabled>Paramétrer le cycle — Étape 3 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 3 ===== -->
+<div class="section" id="step3">
+  <div class="card">
+    <h2>⚙️ Paramétrage du cycle</h2>
+    <h3>Nombre de séances</h3>
+    <div class="slider-wrap">
+      <input type="range" id="slider-seances" min="6" max="10" value="8" oninput="updateSlider()">
+      <div class="slider-labels"><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+    </div>
+    <div class="slider-display" id="slider-display"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(2)">‹ Retour</button>
+      <button class="btn btn-success"   onclick="goStep(4)">Générer la planification — Étape 4 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 4 ===== -->
+<div class="section" id="step4">
+  <div class="card">
+    <h2>📅 Planification dynamique du cycle</h2>
+    <div id="timeline-progression"></div>
+    <div id="planning-content"></div>
+    <div id="cycle-summary"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(3)">‹ Retour</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-success"   onclick="goStep(5)">Comparaison avant/après — Étape 5 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉTAPE 5 ===== -->
+<div class="section" id="step5">
+  <div class="card">
+    <h2>📊 Comparaison avant / après cycle</h2>
+    <div class="alert alert-info">Importez deux fichiers CSV ADP 2026 : un relevé <strong>avant</strong> le cycle et un relevé <strong>après</strong>.</div>
+    <div class="comp-zone">
+      <div class="comp-drop" id="comp-drop-avant" onclick="document.getElementById('comp-csv-avant').click()">
+        <div class="comp-icon">📂</div>
+        <div class="comp-title">Fichier AVANT</div>
+        <p>Relevé de début de cycle</p>
+        <p id="comp-avant-name" style="color:var(--green);font-weight:700;margin-top:6px;"></p>
+      </div>
+      <div class="comp-drop" id="comp-drop-apres" onclick="document.getElementById('comp-csv-apres').click()">
+        <div class="comp-icon">📂</div>
+        <div class="comp-title">Fichier APRÈS</div>
+        <p>Relevé de fin de cycle</p>
+        <p id="comp-apres-name" style="color:var(--green);font-weight:700;margin-top:6px;"></p>
+      </div>
+    </div>
+    <input type="file" id="comp-csv-avant" accept=".csv,.txt" style="display:none" onchange="chargerCompCSV(event,'avant')">
+    <input type="file" id="comp-csv-apres" accept=".csv,.txt" style="display:none" onchange="chargerCompCSV(event,'apres')">
+    <div id="comp-msg"></div>
+    <div id="comp-results"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="goStep(4)">‹ Retour</button>
+      <button class="btn btn-primary"   onclick="lancerComparaison()" id="btn-comparer" disabled>🔍 Lancer la comparaison</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ================================================================
+   RÉFÉRENTIEL PÉDAGOGIQUE — ADP 2026 — Lancer de Poids DI-POI
+   Source officielle validée : grille_LDP_DI_POI_nouveaux.pdf ·
+   ADP2026_DI_APS_CODE.xlsx (feuille OBSERVABLES + CODES) ·
+   referentiel_LDP_DI-POI.txt étape 2 · Analyse_Ref_LDP_Equipe1_ADP2026
+   Famille : Athlétisme · Type DI — Diagnostique Initial · Barème officiel intégré
+   ================================================================ */
+
+// ===== BARÈME OFFICIEL =====
+var BAREME = {
+    "1AC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":6.0,"perf_cm":809},{"note":5.7,"perf_cm":764},{"note":5.4,"perf_cm":719},{"note":5.1,"perf_cm":674},{"note":4.8,"perf_cm":629},{"note":4.5,"perf_cm":584},{"note":4.2,"perf_cm":539},{"note":3.9,"perf_cm":494},{"note":3.6,"perf_cm":454},{"note":3.3,"perf_cm":414},{"note":3.0,"perf_cm":374},{"note":2.7,"perf_cm":354},{"note":2.4,"perf_cm":334},{"note":2.1,"perf_cm":314},{"note":1.8,"perf_cm":294},{"note":1.5,"perf_cm":274},{"note":1.2,"perf_cm":254},{"note":0.9,"perf_cm":234},{"note":0.6,"perf_cm":214},{"note":0.3,"perf_cm":194}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":6.0,"perf_cm":724},{"note":5.7,"perf_cm":684},{"note":5.4,"perf_cm":644},{"note":5.1,"perf_cm":604},{"note":4.8,"perf_cm":564},{"note":4.5,"perf_cm":524},{"note":4.2,"perf_cm":484},{"note":3.9,"perf_cm":444},{"note":3.6,"perf_cm":409},{"note":3.3,"perf_cm":374},{"note":3.0,"perf_cm":339},{"note":2.7,"perf_cm":314},{"note":2.4,"perf_cm":289},{"note":2.1,"perf_cm":264},{"note":1.8,"perf_cm":239},{"note":1.5,"perf_cm":214},{"note":1.2,"perf_cm":189},{"note":0.9,"perf_cm":164},{"note":0.6,"perf_cm":139},{"note":0.3,"perf_cm":114}]
+        }
+    },
+    "2AC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":6.0,"perf_cm":871},{"note":5.7,"perf_cm":821},{"note":5.4,"perf_cm":771},{"note":5.1,"perf_cm":721},{"note":4.8,"perf_cm":671},{"note":4.5,"perf_cm":621},{"note":4.2,"perf_cm":571},{"note":3.9,"perf_cm":521},{"note":3.6,"perf_cm":481},{"note":3.3,"perf_cm":441},{"note":3.0,"perf_cm":401},{"note":2.7,"perf_cm":381},{"note":2.4,"perf_cm":361},{"note":2.1,"perf_cm":341},{"note":1.8,"perf_cm":321},{"note":1.5,"perf_cm":301},{"note":1.2,"perf_cm":281},{"note":0.9,"perf_cm":261},{"note":0.6,"perf_cm":241},{"note":0.3,"perf_cm":221}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":6.0,"perf_cm":749},{"note":5.7,"perf_cm":709},{"note":5.4,"perf_cm":669},{"note":5.1,"perf_cm":629},{"note":4.8,"perf_cm":589},{"note":4.5,"perf_cm":549},{"note":4.2,"perf_cm":509},{"note":3.9,"perf_cm":469},{"note":3.6,"perf_cm":434},{"note":3.3,"perf_cm":399},{"note":3.0,"perf_cm":364},{"note":2.7,"perf_cm":339},{"note":2.4,"perf_cm":314},{"note":2.1,"perf_cm":289},{"note":1.8,"perf_cm":264},{"note":1.5,"perf_cm":239},{"note":1.2,"perf_cm":214},{"note":0.9,"perf_cm":189},{"note":0.6,"perf_cm":164},{"note":0.3,"perf_cm":139}]
+        }
+    },
+    "3AC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":6.0,"perf_cm":958},{"note":5.7,"perf_cm":908},{"note":5.4,"perf_cm":858},{"note":5.1,"perf_cm":808},{"note":4.8,"perf_cm":758},{"note":4.5,"perf_cm":708},{"note":4.2,"perf_cm":658},{"note":3.9,"perf_cm":608},{"note":3.6,"perf_cm":568},{"note":3.3,"perf_cm":528},{"note":3.0,"perf_cm":488},{"note":2.7,"perf_cm":468},{"note":2.4,"perf_cm":448},{"note":2.1,"perf_cm":428},{"note":1.8,"perf_cm":408},{"note":1.5,"perf_cm":388},{"note":1.2,"perf_cm":368},{"note":0.9,"perf_cm":348},{"note":0.6,"perf_cm":328},{"note":0.3,"perf_cm":308}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":6.0,"perf_cm":755},{"note":5.7,"perf_cm":720},{"note":5.4,"perf_cm":685},{"note":5.1,"perf_cm":650},{"note":4.8,"perf_cm":615},{"note":4.5,"perf_cm":580},{"note":4.2,"perf_cm":545},{"note":3.9,"perf_cm":510},{"note":3.6,"perf_cm":475},{"note":3.3,"perf_cm":440},{"note":3.0,"perf_cm":405},{"note":2.7,"perf_cm":380},{"note":2.4,"perf_cm":355},{"note":2.1,"perf_cm":330},{"note":1.8,"perf_cm":305},{"note":1.5,"perf_cm":280},{"note":1.2,"perf_cm":255},{"note":0.9,"perf_cm":230},{"note":0.6,"perf_cm":205},{"note":0.3,"perf_cm":180}]
+        }
+    },
+    "TC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":6.0,"perf_cm":1111},{"note":5.7,"perf_cm":1056},{"note":5.4,"perf_cm":1001},{"note":5.1,"perf_cm":946},{"note":4.8,"perf_cm":891},{"note":4.5,"perf_cm":836},{"note":4.2,"perf_cm":781},{"note":3.9,"perf_cm":726},{"note":3.6,"perf_cm":686},{"note":3.3,"perf_cm":646},{"note":3.0,"perf_cm":606},{"note":2.7,"perf_cm":586},{"note":2.4,"perf_cm":566},{"note":2.1,"perf_cm":546},{"note":1.8,"perf_cm":526},{"note":1.5,"perf_cm":506},{"note":1.2,"perf_cm":486},{"note":0.9,"perf_cm":466},{"note":0.6,"perf_cm":446},{"note":0.3,"perf_cm":426}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":6.0,"perf_cm":787},{"note":5.7,"perf_cm":752},{"note":5.4,"perf_cm":717},{"note":5.1,"perf_cm":682},{"note":4.8,"perf_cm":647},{"note":4.5,"perf_cm":612},{"note":4.2,"perf_cm":577},{"note":3.9,"perf_cm":542},{"note":3.6,"perf_cm":507},{"note":3.3,"perf_cm":472},{"note":3.0,"perf_cm":437},{"note":2.7,"perf_cm":412},{"note":2.4,"perf_cm":387},{"note":2.1,"perf_cm":362},{"note":1.8,"perf_cm":337},{"note":1.5,"perf_cm":312},{"note":1.2,"perf_cm":287},{"note":0.9,"perf_cm":262},{"note":0.6,"perf_cm":237},{"note":0.3,"perf_cm":212}]
+        }
+    },
+    "1BAC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":7.0,"perf_cm":1150},{"note":6.65,"perf_cm":1099},{"note":6.3,"perf_cm":1044},{"note":5.95,"perf_cm":989},{"note":5.6,"perf_cm":934},{"note":5.25,"perf_cm":879},{"note":4.9,"perf_cm":824},{"note":4.55,"perf_cm":769},{"note":4.2,"perf_cm":729},{"note":3.85,"perf_cm":689},{"note":3.5,"perf_cm":649},{"note":3.15,"perf_cm":629},{"note":2.8,"perf_cm":609},{"note":2.45,"perf_cm":589},{"note":2.1,"perf_cm":569},{"note":1.75,"perf_cm":549},{"note":1.4,"perf_cm":529},{"note":1.05,"perf_cm":509},{"note":0.7,"perf_cm":489},{"note":0.35,"perf_cm":469}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":7.0,"perf_cm":818},{"note":6.65,"perf_cm":778},{"note":6.3,"perf_cm":738},{"note":5.95,"perf_cm":698},{"note":5.6,"perf_cm":658},{"note":5.25,"perf_cm":618},{"note":4.9,"perf_cm":578},{"note":4.55,"perf_cm":550},{"note":4.2,"perf_cm":515},{"note":3.85,"perf_cm":480},{"note":3.5,"perf_cm":445},{"note":3.15,"perf_cm":420},{"note":2.8,"perf_cm":395},{"note":2.45,"perf_cm":370},{"note":2.1,"perf_cm":345},{"note":1.75,"perf_cm":320},{"note":1.4,"perf_cm":295},{"note":1.05,"perf_cm":270},{"note":0.7,"perf_cm":245},{"note":0.35,"perf_cm":220}]
+        }
+    },
+    "2BAC": {
+        "Garcons": {
+            "poids_kg": 4,
+            "bareme": [{"note":7.0,"perf_cm":1222},{"note":6.65,"perf_cm":1167},{"note":6.3,"perf_cm":1112},{"note":5.95,"perf_cm":1057},{"note":5.6,"perf_cm":1002},{"note":5.25,"perf_cm":947},{"note":4.9,"perf_cm":892},{"note":4.55,"perf_cm":837},{"note":4.2,"perf_cm":797},{"note":3.85,"perf_cm":757},{"note":3.5,"perf_cm":717},{"note":3.15,"perf_cm":697},{"note":2.8,"perf_cm":677},{"note":2.45,"perf_cm":657},{"note":2.1,"perf_cm":637},{"note":1.75,"perf_cm":617},{"note":1.4,"perf_cm":597},{"note":1.05,"perf_cm":577},{"note":0.7,"perf_cm":557},{"note":0.35,"perf_cm":537}]
+        },
+        "Filles": {
+            "poids_kg": 3,
+            "bareme": [{"note":7.0,"perf_cm":887},{"note":6.65,"perf_cm":842},{"note":6.3,"perf_cm":797},{"note":5.95,"perf_cm":752},{"note":5.6,"perf_cm":707},{"note":5.25,"perf_cm":662},{"note":4.9,"perf_cm":617},{"note":4.55,"perf_cm":572},{"note":4.2,"perf_cm":537},{"note":3.85,"perf_cm":502},{"note":3.5,"perf_cm":467},{"note":3.15,"perf_cm":442},{"note":2.8,"perf_cm":417},{"note":2.45,"perf_cm":392},{"note":2.1,"perf_cm":367},{"note":1.75,"perf_cm":342},{"note":1.4,"perf_cm":317},{"note":1.05,"perf_cm":292},{"note":0.7,"perf_cm":267},{"note":0.35,"perf_cm":242}]
+        }
+    }
+};
+
+var SEUIL_C = 7.5;
+var SEUIL_B = 5.0;
+
+function codeVersVal(code) {
+  var c = String(code).trim().toUpperCase();
+  if (c === 'A') return 3;
+  if (c === 'B') return 6;
+  if (c === 'C') return 9;
+  var n = parseFloat(c.replace(',', '.'));
+  if (!isNaN(n) && n >= 0 && n <= 10) return n;
+  return null;
+}
+function valVersProfil(v) {
+  if (v >= SEUIL_C) return 'C';
+  if (v >= SEUIL_B) return 'B';
+  return 'A';
+}
+
+function getNiveauClasse() {
+  var sel = document.getElementById('niveau-select');
+  return sel ? sel.value : '3AC';
+}
+
+function getSexeEleve(row) {
+  var sel = row.querySelector('select[data-obs="sexe"]');
+  return sel ? sel.value : '';
+}
+
+function getNoteMaxForNiveau(niveau) {
+  var niveauData = BAREME[niveau];
+  if (!niveauData) return 6;
+  var firstSexe = Object.keys(niveauData)[0];
+  if (!firstSexe) return 6;
+  var firstBareme = niveauData[firstSexe].bareme;
+  if (!firstBareme || firstBareme.length === 0) return 6;
+  var premier = firstBareme[0];
+  return premier.hasOwnProperty('note_perf') ? premier.note_perf : premier.note;
+}
+
+/* ================================================================
+   NOTE PROCÉDURALE — BARÈME OFFICIEL
+   Retourne désormais la note BRUTE sur l'échelle native du barème :
+     - Collège (1AC, 2AC, 3AC)      -> note sur 6 points
+     - Lycée   (TC, 1BAC, 2BAC)     -> note sur 7 points
+   La conversion /20 (si besoin d'affichage comparatif) se fait à part,
+   via convertirNoteSur20(), sans jamais altérer la note procédurale brute.
+   ================================================================ */
+function calculerNoteOfficielle(perf_m, niveau, sexe) {
+  if (!perf_m || perf_m === '' || isNaN(perf_m)) return null;
+  var perf_cm = parseFloat(perf_m) * 100;
+  var sexeKey = (sexe && sexe.toUpperCase() === 'G') ? 'Garcons' : 'Filles';
+  var niveauData = BAREME[niveau];
+  if (!niveauData) return null;
+  var sexeData = niveauData[sexeKey];
+  if (!sexeData) return null;
+  var bareme = sexeData.bareme;
+  if (!bareme || bareme.length === 0) return null;
+
+  function noteDe(entry) { return entry.hasOwnProperty('note_perf') ? entry.note_perf : entry.note; }
+
+  var premier = bareme[0];
+  if (perf_cm >= premier.perf_cm) {
+    return Math.round(noteDe(premier) * 100) / 100;
+  }
+  var dernier = bareme[bareme.length - 1];
+  if (perf_cm <= dernier.perf_cm) {
+    return Math.round(noteDe(dernier) * 100) / 100;
+  }
+  for (var i = 0; i < bareme.length - 1; i++) {
+    var haut = bareme[i];
+    var bas = bareme[i + 1];
+    if (perf_cm <= haut.perf_cm && perf_cm >= bas.perf_cm) {
+      var noteHaut = noteDe(haut);
+      var noteBas = noteDe(bas);
+      var ratio = (perf_cm - bas.perf_cm) / (haut.perf_cm - bas.perf_cm);
+      var noteBrute = noteBas + ratio * (noteHaut - noteBas);
+      return Math.round(noteBrute * 100) / 100;
+    }
+  }
+  return null;
+}
+/* Équivalent /20 de la note procédurale brute — affichage comparatif uniquement */
+function convertirNoteSur20(noteBrute, niveau) {
+  if (noteBrute === null || noteBrute === undefined) return null;
+  var noteMax = getNoteMaxForNiveau(niveau);
+  if (!noteMax) return null;
+  return Math.round((noteBrute / noteMax * 20) * 100) / 100;
+}
+function getInterpretationNote(noteBrute, noteMax) {
+  if (noteBrute === null || noteBrute === undefined) return { label: 'N/A', cls: '' };
+  var ratio = noteMax ? (noteBrute / noteMax) : 0;
+  if (ratio >= 0.85) return { label: '🌟 Excellent', cls: 'badge-note-excellent' };
+  if (ratio >= 0.70) return { label: '✅ Avancé', cls: 'badge-note-avance' };
+  if (ratio >= 0.45) return { label: '🔄 Intermédiaire', cls: 'badge-note-intermediaire' };
+  return { label: '🔴 Débutant', cls: 'badge-note-debutant' };
+}
+
+var OBS_NOMS = ['OBS-01 Trajet (chaîne cinétique)', 'OBS-02 Trajectoire (angle/secteur)', 'OBS-03 Équilibre (placement sol)'];
+var OBS_COURTS = ['Trajet', 'Trajectoire', 'Équilibre'];
+
+/* Conduites typiques officielles A/B/C par observable (grille finale + Analyse_Ref_LDP_Equipe1) */
+var CONDUITES = [
+  { A: "Extension bras, le coude remonte avant la main.", B: "Torsion bassin-épaules pour accumuler de l'énergie.", C: "Triple extension séquentielle cheville, genou, hanche." },
+  { A: "Poussée plate vers le bas ou hors secteur.", B: "Trajectoire en cloche ou rectiligne dans l'axe.", C: "Angle d'envol optimal constant proche de 40°." },
+  { A: "Position fixe face/profil, transfert pied avant.", B: "Déplacement latéral glissé de profil avec avance appuis.", C: "Élan O'Brien/rotation, alignement menton-genou-pied." }
+];
+
+var AXES = [
+  {
+    id: 1,
+    titre: "AXE 1 — Optimisation de l'angle d'envol et précision du secteur de chute",
+    priorite: "HAUTE", obs: 1,
+    sa: [
+      { nom: "SA 1.1 — Repère angulaire haut et lâcher guidé", seances: "Séances 1-3",
+        groupeA: { sa: "SA 1.1 Poussée guidée vers repère haut", consigne: "Pousser le poids vers un repère visuel placé en hauteur (corde/élastique à 2 m), sans le lancer vers le bas.", critere: "Le poids passe au-dessus du repère sur au moins 2 essais sur 3." },
+        groupeB: { sa: "SA 1.1 Trajectoire dans l'axe", consigne: "Même exercice avec secteur matérialisé au sol (fils/plots) ; viser le centre du secteur.", critere: "La trajectoire reste dans l'axe du secteur réglementaire (34,92°)." },
+        groupeC: { sa: "SA 1.2 Angle constant mesuré", consigne: "3 essais officiels : viser un angle d'envol proche de 40°, mesurer la chute dans le secteur.", critere: "Trajectoire en cloche régulière, chute dans le secteur sur les 3 essais." },
+        indicatif: "Observer si l'élève oriente spontanément la poussée vers le haut plutôt que vers le bas." },
+      { nom: "SA 1.2 — Indicateurs spatiaux intermédiaires", seances: "Séances 4-6",
+        groupeA: { sa: "SA 1.1 Repère haut (renforcement)", consigne: "Répéter la poussée vers le repère haut avec feedback verbal immédiat après chaque essai.", critere: "Réduction visible des jets écrasés ou hors secteur sur 3 essais." },
+        groupeB: { sa: "SA 1.2 Couloir + repère haut combinés", consigne: "Associer le secteur matérialisé au sol et le repère haut pour stabiliser l'angle.", critere: "Au moins 2 jets sur 3 dans le secteur avec trajectoire en cloche." },
+        groupeC: { sa: "SA 1.3 Angle optimal + mesure officielle", consigne: "3 essais officiels notés : mesurer la distance et coder OBS-02.", critere: "Code OBS-02 évalué à C (angle constant proche de 40°)." },
+        indicatif: "Vérifier que l'élève ajuste son angle d'envol après un jet écrasé (régulation visible)." }
+    ]
+  },
+  {
+    id: 2,
+    titre: "AXE 2 — Coordination de la poussée segmentaire et alignement postural",
+    priorite: "MOYENNE", obs: 0,
+    sa: [
+      { nom: "SA 2.1 — Dissociation bassin-épaules", seances: "Séances 4-6",
+        groupeA: { sa: "SA 2.1 Extension bras guidée", consigne: "Depuis une position fixe, pousser le poids en extension complète du bras, coude qui remonte avant la main.", critere: "Le coude précède nettement la main lors de la poussée." },
+        groupeB: { sa: "SA 2.1 Torsion bassin-épaules", consigne: "Réaliser une torsion bassin-épaules avant la poussée pour accumuler de l'énergie avant le jet.", critere: "Un décalage temporel visible existe entre la rotation du bassin et celle des épaules." },
+        groupeC: { sa: "SA 2.2 Triple extension guidée", consigne: "Travailler la triple extension séquentielle cheville-genou-hanche avec appui fixe, sans translation.", critere: "Les trois articulations s'étendent dans l'ordre cheville puis genou puis hanche." },
+        indicatif: "Observer si l'élève engage le bras avant ou après le bas du corps." },
+      { nom: "SA 2.2 — Chaîne cinétique complète", seances: "Séances 7-9",
+        groupeA: { sa: "SA 2.1 Extension bras (renforcement)", consigne: "Répéter l'extension du bras avec un signal sonore marquant le moment où le coude doit remonter.", critere: "Le signal sonore coïncide avec la remontée du coude sur 2 essais sur 3." },
+        groupeB: { sa: "SA 2.2 Torsion + transfert poids avant", consigne: "Enchaîner torsion bassin-épaules puis transfert du poids du corps sur le pied avant lors du jet.", critere: "Le transfert d'appui est visible et suit immédiatement la torsion." },
+        groupeC: { sa: "SA 2.3 Triple extension + mesure", consigne: "3 essais officiels : coder OBS-01 (triple extension cheville-genou-hanche) et mesurer la distance.", critere: "Code OBS-01 évalué à C sur au moins 2 essais sur 3." },
+        indicatif: "Vérifier l'ordre d'engagement des segments : jambes puis tronc puis bras." }
+    ]
+  },
+  {
+    id: 3,
+    titre: "AXE 3 — Structuration des appuis au sol et intégration de la vitesse d'élan",
+    priorite: "CONSOLIDATION", obs: 2,
+    sa: [
+      { nom: "SA 3.1 — Stabilisation du placement initial", seances: "Séances 7-9",
+        groupeA: { sa: "SA 3.1 Position fixe stabilisée", consigne: "Position de départ face ou profil, pieds écartés, légère flexion ; rester stable avant la poussée.", critere: "L'élève ne bouge pas les pieds avant le déclenchement du jet." },
+        groupeB: { sa: "SA 3.1 Déplacement latéral guidé", consigne: "Réaliser un déplacement latéral glissé de profil avec avance progressive des appuis avant le jet.", critere: "Les appuis avancent dans le couloir sans rupture avant l'impulsion." },
+        groupeC: { sa: "SA 3.2 Élan complet guidé", consigne: "Travailler l'élan O'Brien ou en rotation avec alignement menton-genou-pied pendant le glissé.", critere: "L'alignement menton-genou-pied est maintenu pendant la phase de glissé." },
+        indicatif: "Observer si l'élève termine « grand », poids transféré sur le pied avant, sans perte d'équilibre." },
+      { nom: "SA 3.2 — Élan complet et rétablissement mesuré", seances: "Séances 10-12",
+        groupeA: { sa: "SA 3.1 Position fixe + sortie réglementaire", consigne: "Geste complet depuis position fixe, en respectant la sortie par la moitié arrière du cercle.", critere: "La sortie du cercle respecte la zone réglementaire arrière sur 3 essais." },
+        groupeB: { sa: "SA 3.2 Glissé + mesure intermédiaire", consigne: "3 essais avec déplacement latéral glissé : mesurer la distance, coder OBS-03.", critere: "Au moins 2 essais sur 3 codés B ou C sur OBS-03." },
+        groupeC: { sa: "SA 3.3 Bilan formatif complet", consigne: "Bilan final : codage OBS-01/02/03, mesure officielle, respect des règles de sécurité et du secteur.", critere: "Distance > 7,00 m (PERF-C) et alignement menton-genou-pied maintenu au glissé." },
+        indicatif: "(Dernière séquence — évaluation formative ; respecter zone de sécurité hors secteur de chute de 34,92°)" }
+    ]
+  }
+];
+
+/* -------- Données de démonstration (12 élèves) -------- */
+var DONNEES_DEMO = [
+  { nom: "Asmaa H.",   sexe: "F", obs1: "A", obs2: "A", obs3: "A", perf: "3.80" },
+  { nom: "Yousra K.",  sexe: "F", obs1: "A", obs2: "A", obs3: "B", perf: "4.10" },
+  { nom: "Imane B.",   sexe: "F", obs1: "A", obs2: "B", obs3: "A", perf: "4.50" },
+  { nom: "Khadija T.", sexe: "F", obs1: "B", obs2: "A", obs3: "A", perf: "4.20" },
+  { nom: "Nadia R.",   sexe: "F", obs1: "B", obs2: "B", obs3: "A", perf: "5.40" },
+  { nom: "Hafsa D.",   sexe: "F", obs1: "A", obs2: "B", obs3: "B", perf: "5.10" },
+  { nom: "Salma E.",   sexe: "F", obs1: "B", obs2: "B", obs3: "B", perf: "5.90" },
+  { nom: "Zineb M.",   sexe: "F", obs1: "B", obs2: "C", obs3: "B", perf: "6.20" },
+  { nom: "Rania L.",   sexe: "F", obs1: "C", obs2: "B", obs3: "B", perf: "6.80" },
+  { nom: "Mariam F.",  sexe: "F", obs1: "B", obs2: "C", obs3: "C", perf: "7.10" },
+  { nom: "Sara C.",    sexe: "F", obs1: "C", obs2: "C", obs3: "B", perf: "7.60" },
+  { nom: "Houda N.",   sexe: "F", obs1: "C", obs2: "C", obs3: "C", perf: "8.40" }
+];
+
+function chargerDonneesDemoConfirm() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var hasData = false;
+  rows.forEach(function(r) {
+    var v = r.querySelector('input[type="text"]');
+    if (v && v.value.trim()) hasData = true;
+  });
+  if (hasData) {
+    if (!confirm('Des données sont déjà présentes. Remplacer par les données d\'exemple ?')) return;
+  }
+  chargerDonneesDemoDirectement();
+}
+
+function chargerDonneesDemoDirectement() {
+  document.getElementById('rows-container').innerHTML = '';
+  DONNEES_DEMO.forEach(function(d) {
+    addRow(d.nom, d.sexe, d.obs1, d.obs2, d.obs3, d.perf);
+  });
+  showImportMsg('🗃 ' + DONNEES_DEMO.length + ' élèves d\'exemple chargés. Cliquez sur "Analyser la classe" pour commencer.', 'info');
+  sauvegarderDonnees();
+  if (typeof sauvegarderDonneesClasse === 'function') sauvegarderDonneesClasse(classeActiveId);
+}
+
+/* -------- Helpers -------- */
+function getSArecommandee(profil, lacuneObs) {
+  if (profil === 'A') {
+    if (lacuneObs === 1) return "SA 1.1 — Repère angulaire haut et lâcher guidé";
+    if (lacuneObs === 0) return "SA 2.1 — Dissociation bassin-épaules";
+    if (lacuneObs === 2) return "SA 3.1 — Stabilisation du placement initial";
+    return "SA 1.1 — Repère angulaire haut et lâcher guidé";
+  }
+  if (profil === 'B') {
+    if (lacuneObs === 1) return "SA 1.2 — Indicateurs spatiaux intermédiaires";
+    if (lacuneObs === 0) return "SA 2.2 — Chaîne cinétique complète";
+    if (lacuneObs === 2) return "SA 3.2 — Élan complet et rétablissement mesuré";
+    return "SA 1.2 — Indicateurs spatiaux intermédiaires";
+  }
+  return "SA 3.2 — Élan complet et rétablissement mesuré";
+}
+function getAxePersonnalise(lacunes) {
+  if (!lacunes || lacunes.length === 0) return "Approfondissement — Structuration des appuis et vitesse d'élan (AXE 3)";
+  var l = lacunes[0];
+  if (l.obs === 1) return "AXE 1 prioritaire — Optimiser l'angle d'envol et le secteur de chute";
+  if (l.obs === 0) return "AXE 2 prioritaire — Coordonner la poussée segmentaire et l'alignement postural";
+  if (l.obs === 2) return "AXE 3 prioritaire — Structurer les appuis au sol et intégrer la vitesse d'élan";
+  return "AXE 1 — Optimisation de l'angle d'envol";
+}
+
+var eleves = [];
+var axesSelectionnes = [];
+var nbSeances = 8;
+
+/* ================================================================
+   FORMULAIRE ÉLÈVES (3 critères OBS-01, OBS-02, OBS-03)
+   ================================================================ */
+function addRow(nom, sexe, v1, v2, v3, perf) {
+  var container = document.getElementById('rows-container');
+  var idx = container.children.length + 1;
+  var div = document.createElement('div');
+  div.className = 'student-row';
+  var sx = (sexe || '').toUpperCase();
+  div.innerHTML =
+    '<span class="row-num">' + idx + '</span>' +
+    '<input type="text"   placeholder="Prénom"         value="' + (nom  || '') + '">' +
+    '<select data-obs="sexe" title="Sexe (pour barème officiel)" style="padding:4px 2px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;text-align:center;">' +
+      '<option value=""' + (sx===''?' selected':'') + '>—</option>' +
+      '<option value="G"' + (sx==='G'?' selected':'') + '>G</option>' +
+      '<option value="F"' + (sx==='F'?' selected':'') + '>F</option>' +
+    '</select>' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v1   !== undefined ? v1   : '') + '" data-obs="1">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v2   !== undefined ? v2   : '') + '" data-obs="2">' +
+    '<input type="text"   placeholder="A/B/C ou 0-10"  value="' + (v3   !== undefined ? v3   : '') + '" data-obs="3">' +
+    '<input type="number" placeholder="ex: 7.45"       value="' + (perf !== undefined && perf !== '' ? perf : '') + '" ' +
+      'step="0.01" min="0" max="30" data-obs="perf" oninput="colorerPerf(this)">' +
+    '<button class="btn btn-secondary" style="padding:3px 7px;font-size:11px;" ' +
+      'onclick="this.parentElement.remove();renumRows()">✕</button>';
+  container.appendChild(div);
+  if (perf !== undefined && perf !== '') {
+    colorerPerf(div.querySelector('input[data-obs="perf"]'));
+  }
+}
+
+function renumRows() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  rows.forEach(function(r, i) { r.querySelector('.row-num').textContent = i + 1; });
+}
+
+function clearForm() {
+  document.getElementById('rows-container').innerHTML = '';
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('btn-export').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  eleves = [];
+  for (var i = 0; i < 5; i++) addRow();
+}
+
+for (var i = 0; i < 5; i++) addRow();
+
+/* ================================================================
+   IMPORT CSV — Utilitaires partagés
+   ================================================================ */
+function detectSep(headerLine) {
+  var tabs   = (headerLine.match(/\t/g)  || []).length;
+  var semis  = (headerLine.match(/;/g)   || []).length;
+  var commas = (headerLine.match(/,/g)   || []).length;
+  if (tabs  >= semis && tabs  >= commas) return '\t';
+  if (semis >= commas)                   return ';';
+  return ',';
+}
+function normaliser(str) {
+  return String(str || '').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/["\-_()\s]/g, '');
+}
+function findCol(headers, patterns) {
+  var normH = headers.map(normaliser);
+  var normP = patterns.map(normaliser);
+  for (var p = 0; p < normP.length; p++)
+    for (var h = 0; h < normH.length; h++)
+      if (normH[h] === normP[p]) return h;
+  for (var p = 0; p < normP.length; p++)
+    for (var h = 0; h < normH.length; h++)
+      if (normP[p].length > 2 && normH[h].indexOf(normP[p]) > -1) return h;
+  return -1;
+}
+function nettoyerObs(val) { return String(val || '').trim().replace(/"/g, '').replace(/[()]/g, '').trim().toUpperCase(); }
+function nettoyerPerf(val) { return String(val || '').trim().replace(/"/g, '').replace(',', '.').trim(); }
+function nettoyerSexe(val) { var s=String(val||'').trim().toUpperCase(); if(s==='M'||s==='G'||s==='GARCON') return 'G'; if(s==='F'||s==='FILLE') return 'F'; return ''; }
+function trouverHeaderIdx(lines) {
+  for (var i = 0; i < lines.length; i++) {
+    var norm = normaliser(lines[i]);
+    if (norm.indexOf('nom') > -1 || norm.indexOf('prenom') > -1) return i;
+  }
+  for (var i = 0; i < lines.length; i++) {
+    var norm = normaliser(lines[i]);
+    if (norm.indexOf('obs') > -1 || norm.indexOf('perf') > -1 ||
+        norm.indexOf('trajet') > -1 || norm.indexOf('trajectoire') > -1 ||
+        norm.indexOf('equilibre') > -1 || norm.indexOf('performance') > -1) return i;
+  }
+  return -1;
+}
+function estColonneNumerique(lines, headerIdx, sep, colIdx) {
+  var count = 0, numeric = 0;
+  for (var j = headerIdx + 1; j < Math.min(headerIdx + 6, lines.length); j++) {
+    var l = lines[j].trim(); if (!l) continue; count++;
+    var cols = l.split(sep);
+    var val = (colIdx < cols.length) ? cols[colIdx].trim().replace(/"/g, '') : '';
+    if (/^\d+$/.test(val)) numeric++;
+  }
+  return count > 0 && numeric === count;
+}
+function scorerColonnesObs(lines, headerIdx, sep, candidats) {
+  return candidats.map(function(idx) {
+    var score = 0;
+    for (var j = headerIdx + 1; j < Math.min(headerIdx + 8, lines.length); j++) {
+      var l = lines[j].trim(); if (!l) continue;
+      var cols = l.split(sep);
+      if (idx >= cols.length) continue;
+      var val = cols[idx].trim().replace(/"/g, '').replace(/[()]/g, '').toUpperCase();
+      if (val === 'A' || val === 'B' || val === 'C') score += 2;
+      else { var n = parseFloat(val.replace(',', '.')); if (!isNaN(n) && n >= 0 && n <= 10) score += 1; }
+    }
+    return { idx: idx, score: score };
+  }).filter(function(s) { return s.score > 0; })
+    .sort(function(a, b) { return b.score - a.score; });
+}
+
+/* ================================================================
+   IMPORT CSV — Bouton 1 : liste des élèves
+   ================================================================ */
+/* ================================================================
+   IMPORT CSV — BOUTON UNIQUE "Importation de fichier CSV"
+   Détecte automatiquement le contenu du fichier :
+     - Fichier "liste d'élèves" pur (uniquement Nom/Prénom)
+       -> remplace la grille (comportement de l'ancien bouton "liste élèves")
+     - Fichier "grille" (avec Sexe / OBS-01..03 / PERF, avec ou sans Nom)
+       -> fusionne avec les lignes existantes ou crée de nouvelles lignes
+          (comportement de l'ancien bouton "données de la grille")
+   Le délimiteur ";" (ou tabulation / virgule, auto-détecté) et toute la
+   logique de parsing existante sont conservés à l'identique.
+   ================================================================ */
+function importUniversalCSV(event) {
+  var file = event.target.files[0]; if (!file) return;
+  event.target.value = '';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    var lines = text.split(/\r?\n/);
+    var headerIdx = trouverHeaderIdx(lines);
+    if (headerIdx < 0) { showImportMsg("❌ Erreur : aucun en-tête trouvé. La 1ère ligne doit contenir au moins «Nom», «Prénom», un «OBS», «Sexe» ou «PERF».", 'err'); return; }
+    var sep  = detectSep(lines[headerIdx]);
+    var rawH = lines[headerIdx].split(sep).map(function(h) { return h.trim().replace(/"/g, ''); });
+    var headers = rawH.map(function(h) { return h.toLowerCase(); });
+
+    var nomCol    = findCol(headers, ['nom et prenom', 'nomeleve', 'nom_eleve', 'eleve', 'nom', 'prenom']);
+    var prenomCol = findCol(headers, ['prenom', 'firstname', 'first name']);
+    var sexeCol   = findCol(headers, ['sexe','genre','sex','gender']);
+    var obs1Col   = findCol(headers, ['obs01trajet','obs-01','obs01','obs1','trajet','chainecinetique','obs-1']);
+    var obs2Col   = findCol(headers, ['obs02trajectoire','obs-02','obs02','obs2','trajectoire','angle','secteur','obs-2']);
+    var obs3Col   = findCol(headers, ['obs03equilibre','obs-03','obs03','obs3','equilibre','placementsol','obs-3']);
+    var perfCol   = findCol(headers, ['perf','performance','distance','resultat','metres','meter','dist']);
+
+    /* Fichier "liste pure" : aucune colonne Sexe / OBS / PERF détectée -> on remplace la grille */
+    var estListePure = (sexeCol < 0 && obs1Col < 0 && obs2Col < 0 && obs3Col < 0 && perfCol < 0);
+
+    if (nomCol >= 0 && estColonneNumerique(lines, headerIdx, sep, nomCol)) {
+      for (var k = nomCol + 1; k < rawH.length; k++) {
+        if (!estColonneNumerique(lines, headerIdx, sep, k)) { nomCol = k; break; }
+      }
+    }
+
+    if (estListePure) {
+      if (nomCol < 0 && prenomCol < 0) { showImportMsg("❌ Erreur : aucune colonne Nom ou Prénom trouvée.", 'err'); return; }
+      document.getElementById('rows-container').innerHTML = '';
+      var imported = 0, ignored = 0;
+      for (var j = headerIdx + 1; j < lines.length; j++) {
+        var line = lines[j].trim();
+        if (!line) { ignored++; continue; }
+        if (normaliser(line).indexOf('bilanclasse') > -1) { ignored++; continue; }
+        var cols = line.split(sep);
+        var nom = '';
+        if (nomCol >= 0 && nomCol < cols.length) nom = cols[nomCol].trim().replace(/"/g, '');
+        if (prenomCol >= 0 && prenomCol !== nomCol && prenomCol < cols.length) {
+          var prenom = cols[prenomCol].trim().replace(/"/g, '');
+          nom = nom ? nom + ' ' + prenom : prenom;
+        }
+        if (!nom) { ignored++; continue; }
+        addRow(nom, '', '', '', '', ''); imported++;
+      }
+      var msg = '👥 ' + imported + ' élève(s) importé(s).';
+      if (ignored > 0) msg += ' ' + ignored + ' ligne(s) ignorée(s).';
+      showImportMsg(msg, imported > 0 ? 'info' : 'err');
+      sauvegarderDonnees();
+      if (typeof sauvegarderDonneesClasse === 'function') sauvegarderDonneesClasse(classeActiveId);
+      return;
+    }
+
+    /* Fichier "grille" : Sexe / OBS-01..03 / PERF présents (Nom optionnel) -> fusion ou création */
+    var attribues = [nomCol, perfCol, obs1Col, obs2Col, obs3Col, sexeCol].filter(function(c){ return c >= 0; });
+    var candidats = [];
+    for (var ci = 0; ci < rawH.length; ci++) { if (attribues.indexOf(ci) < 0) candidats.push(ci); }
+    var missingObs = [];
+    if (obs1Col < 0) missingObs.push(1);
+    if (obs2Col < 0) missingObs.push(2);
+    if (obs3Col < 0) missingObs.push(3);
+    if (missingObs.length > 0 && candidats.length > 0) {
+      var scores = scorerColonnesObs(lines, headerIdx, sep, candidats);
+      var ai = 0;
+      missingObs.forEach(function(obsNum) {
+        if (ai < scores.length) {
+          if (obsNum === 1) obs1Col = scores[ai].idx;
+          if (obsNum === 2) obs2Col = scores[ai].idx;
+          if (obsNum === 3) obs3Col = scores[ai].idx;
+          ai++;
+        }
+      });
+    }
+    var rowsExistantes = document.querySelectorAll('#rows-container .student-row');
+    var indexLignes = {};
+    var rowsArray = [];
+    rowsExistantes.forEach(function(row) {
+      var inp = row.querySelector('input[type=text]');
+      rowsArray.push(row);
+      if (inp && inp.value.trim()) indexLignes[normaliser(inp.value.trim())] = row;
+    });
+    var sansNom = (nomCol < 0);
+    var importes = 0, fusionnes = 0, ignored2 = 0;
+    var ligneDataIdx = 0;
+    for (var j2 = headerIdx + 1; j2 < lines.length; j2++) {
+      var line2 = lines[j2].trim();
+      if (!line2) { ignored2++; continue; }
+      if (normaliser(line2).indexOf('bilanclasse') > -1) { ignored2++; continue; }
+      var cols2 = line2.split(sep);
+      var v1   = (obs1Col >= 0 && obs1Col < cols2.length) ? nettoyerObs(cols2[obs1Col])  : '';
+      var v2   = (obs2Col >= 0 && obs2Col < cols2.length) ? nettoyerObs(cols2[obs2Col])  : '';
+      var v3   = (obs3Col >= 0 && obs3Col < cols2.length) ? nettoyerObs(cols2[obs3Col])  : '';
+      var perf = (perfCol >= 0 && perfCol < cols2.length) ? nettoyerPerf(cols2[perfCol]) : '';
+      var sx   = (sexeCol >= 0 && sexeCol < cols2.length) ? nettoyerSexe(cols2[sexeCol]) : '';
+      if (sansNom) {
+        if (ligneDataIdx < rowsArray.length) {
+          var row = rowsArray[ligneDataIdx];
+          var i1 = row.querySelector('input[data-obs="1"]');
+          var i2 = row.querySelector('input[data-obs="2"]');
+          var i3 = row.querySelector('input[data-obs="3"]');
+          var ip = row.querySelector('input[data-obs="perf"]');
+          var isx = row.querySelector('select[data-obs="sexe"]');
+          if (i1 && v1 !== '') i1.value = v1;
+          if (i2 && v2 !== '') i2.value = v2;
+          if (i3 && v3 !== '') i3.value = v3;
+          if (ip && perf !== '') { ip.value = perf; colorerPerf(ip); }
+          if (isx && sx !== '') isx.value = sx;
+          if (tabletMode) injecterBoutonsObs(row);
+          fusionnes++;
+        } else { addRow('Élève ' + (ligneDataIdx + 1), sx, v1, v2, v3, perf); importes++; }
+        ligneDataIdx++;
+      } else {
+        var nom2 = '';
+        if (nomCol >= 0 && nomCol < cols2.length) { nom2 = cols2[nomCol].trim().replace(/"/g, ''); }
+        else { for (var c = 0; c < cols2.length; c++) { var vv = cols2[c].trim().replace(/"/g, ''); if (vv && !/^\d+$/.test(vv)) { nom2 = vv; break; } } }
+        if (!nom2) { ignored2++; continue; }
+        var cle = normaliser(nom2);
+        if (indexLignes[cle]) {
+          var row = indexLignes[cle];
+          var i1 = row.querySelector('input[data-obs="1"]');
+          var i2 = row.querySelector('input[data-obs="2"]');
+          var i3 = row.querySelector('input[data-obs="3"]');
+          var ip = row.querySelector('input[data-obs="perf"]');
+          var isx = row.querySelector('select[data-obs="sexe"]');
+          if (i1 && v1 !== '') i1.value = v1;
+          if (i2 && v2 !== '') i2.value = v2;
+          if (i3 && v3 !== '') i3.value = v3;
+          if (ip && perf !== '') { ip.value = perf; colorerPerf(ip); }
+          if (isx && sx !== '') isx.value = sx;
+          if (tabletMode) injecterBoutonsObs(row);
+          fusionnes++;
+        } else { addRow(nom2, sx, v1, v2, v3, perf); importes++; }
+      }
+    }
+    var msg2 = '📊 Fichier importé — ';
+    if (fusionnes > 0) msg2 += fusionnes + ' élève(s) mis à jour';
+    if (importes  > 0) msg2 += (fusionnes > 0 ? ', ' : '') + importes + ' créé(s)';
+    if (fusionnes === 0 && importes === 0) msg2 = '❌ Aucune donnée valide trouvée.';
+    if (ignored2 > 0) msg2 += ' (' + ignored2 + ' ignorée(s))';
+    msg2 += ' Seuls OBS-01, OBS-02 et OBS-03 sont utilisés pour le profil A/B/C ; Sexe + PERF servent au barème.';
+    showImportMsg(msg2, (fusionnes + importes) > 0 ? 'info' : 'err');
+    sauvegarderDonnees();
+    if (typeof sauvegarderDonneesClasse === 'function') sauvegarderDonneesClasse(classeActiveId);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+/* ----------------------------------------------------------------
+   Anciennes fonctions conservées (compatibilité interne / appels
+   éventuels ailleurs dans le code) — redirigées vers le handler unique.
+   ---------------------------------------------------------------- */
+function importElevesCSV(event) { importUniversalCSV(event); }
+function importGrilleCSV(event)  { importUniversalCSV(event); }
+
+function importCSV(event) {
+  var file = event.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { parseCSV(e.target.result); };
+  reader.readAsText(file, 'UTF-8');
+}
+function parseCSV(text) {
+  var lines = text.split(/\r?\n/);
+  var headerIdx = trouverHeaderIdx(lines);
+  if (headerIdx < 0) { showImportMsg("Erreur : aucun en-tête trouvé.", 'err'); return; }
+  var sep     = detectSep(lines[headerIdx]);
+  var headers = lines[headerIdx].split(sep).map(function(h) { return h.trim().replace(/"/g, '').toLowerCase(); });
+  var nomCol  = findCol(headers, ['nom et prenom', 'nom_eleve', 'prenom', 'nom']);
+  var obs1Col = findCol(headers, ['trajet', 'obs01_trajet', 'obs-01', 'obs01', 'obs1']);
+  var obs2Col = findCol(headers, ['trajectoire', 'obs02_trajectoire', 'obs-02', 'obs02', 'obs2']);
+  var obs3Col = findCol(headers, ['equilibre', 'obs03_equilibre', 'obs-03', 'obs03', 'obs3']);
+  var perfCol = findCol(headers, ['perf']);
+  if (nomCol >= 0 && estColonneNumerique(lines, headerIdx, sep, nomCol)) nomCol = nomCol + 1;
+  document.getElementById('rows-container').innerHTML = '';
+  var imported = 0, ignored = 0;
+  for (var j = headerIdx + 1; j < lines.length; j++) {
+    var line = lines[j].trim();
+    if (!line || line.toLowerCase().indexOf('bilan_classe') > -1) { ignored++; continue; }
+    var cols = line.split(sep);
+    if (cols.length < 2) { ignored++; continue; }
+    var nom = nomCol >= 0 ? cols[nomCol] : cols[0];
+    nom = nom ? nom.trim().replace(/"/g, '') : '';
+    if (!nom) { ignored++; continue; }
+    var v1   = obs1Col >= 0 ? nettoyerObs(cols[obs1Col]  || '') : '';
+    var v2   = obs2Col >= 0 ? nettoyerObs(cols[obs2Col]  || '') : '';
+    var v3   = obs3Col >= 0 ? nettoyerObs(cols[obs3Col]  || '') : '';
+    var perf = perfCol >= 0 ? nettoyerPerf(cols[perfCol] || '') : '';
+    addRow(nom, '', v1, v2, v3, perf); imported++;
+  }
+  var msg = imported + " élève(s) importé(s).";
+  if (ignored > 0) msg += " " + ignored + " ligne(s) ignorée(s).";
+  showImportMsg(msg, imported > 0 ? 'info' : 'err');
+}
+
+function showImportMsg(msg, type) {
+  document.getElementById('import-msg').innerHTML =
+    '<div class="alert alert-' + type + '">' + msg + '</div>';
+}
+
+function changerNiveauClasse(val) {
+  // Stocker le niveau pour l'utiliser dans l'analyse
+  if (typeof sauvegarderNiveauClasse === 'function') sauvegarderNiveauClasse(val);
+}
+
+/* ================================================================
+   ANALYSE (3 critères OBS-01, OBS-02, OBS-03)
+   ================================================================ */
+function analyser() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var donnees = []; var erreurs = 0;
+  var niveau = getNiveauClasse();
+  rows.forEach(function(row) {
+    var nomInput  = row.querySelector('input[type="text"]');
+    var obs1Input = row.querySelector('input[data-obs="1"]');
+    var obs2Input = row.querySelector('input[data-obs="2"]');
+    var obs3Input = row.querySelector('input[data-obs="3"]');
+    var perfInput = row.querySelector('input[data-obs="perf"]');
+    var sexe = getSexeEleve(row);
+    var nom = nomInput ? nomInput.value.trim() : '';
+    if (!nom) return;
+    var v1 = codeVersVal(obs1Input ? obs1Input.value : '');
+    var v2 = codeVersVal(obs2Input ? obs2Input.value : '');
+    var v3 = codeVersVal(obs3Input ? obs3Input.value : '');
+    var perf = perfInput ? perfInput.value.trim().replace(',', '.') : '';
+    
+    if (obs1Input) obs1Input.classList.toggle('err', v1 === null);
+    if (obs2Input) obs2Input.classList.toggle('err', v2 === null);
+    if (obs3Input) obs3Input.classList.toggle('err', v3 === null);
+    if (perfInput) perfInput.classList.toggle('err', perf === '' || isNaN(perf));
+    
+    if (v1 === null || v2 === null || v3 === null || perf === '' || isNaN(perf)) { 
+      erreurs++; 
+      return; 
+    }
+    
+    var noteOfficielle = null;
+    var noteMax = getNoteMaxForNiveau(niveau);
+    var noteInterpretation = { label: 'N/A', cls: '' };
+    if (perf && perf !== '' && sexe && (sexe === 'G' || sexe === 'F')) {
+      noteOfficielle = calculerNoteOfficielle(perf, niveau, sexe);
+      if (noteOfficielle !== null) {
+        noteInterpretation = getInterpretationNote(noteOfficielle, noteMax);
+      }
+    }
+    
+    // Moyenne sur 3 critères OBS-01 + OBS-02 + OBS-03 (indépendante du barème — sert au profil A/B/C)
+    var moy = (v1 + v2 + v3) / 3;
+    
+    donnees.push({ 
+      nom: nom, 
+      obs: [v1, v2, v3], 
+      perf: perf,
+      sexe: sexe,
+      niveau: niveau,
+      noteMax: noteMax,
+      noteOfficielle: noteOfficielle,
+      noteSur20: convertirNoteSur20(noteOfficielle, niveau),
+      noteInterpretation: noteInterpretation,
+      moy: Math.round(moy * 10) / 10
+    });
+  });
+  if (erreurs > 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">' + erreurs + ' ligne(s) invalides. Vérifiez que chaque élève a un prénom, OBS-01, OBS-02, OBS-03 et une performance (PERF) renseignés.</div>';
+    return;
+  }
+  if (donnees.length === 0) {
+    document.getElementById('form-err').innerHTML =
+      '<div class="alert alert-err">Aucune donnée valide. Saisir au moins un élève.</div>';
+    return;
+  }
+  document.getElementById('form-err').innerHTML = '';
+  donnees.forEach(function(e) {
+    e.sur20 = Math.round(e.moy * 2 * 10) / 10;
+    e.profil = valVersProfil(e.moy);
+    e.profilDetail = e.obs.map(function(v) { return valVersProfil(v); }).join(' / ');
+    var lacunes = [];
+    e.obs.forEach(function(v, i) { if (valVersProfil(v) === 'A') lacunes.push({ obs: i, val: v }); });
+    lacunes.sort(function(a, b) { return a.val - b.val; });
+    e.lacunes = lacunes;
+    e.axe = getAxePersonnalise(lacunes);
+    var lacuneObs = lacunes.length > 0 ? lacunes[0].obs : -1;
+    e.sa = getSArecommandee(e.profil, lacuneObs);
+  });
+  var sorted = donnees.slice().sort(function(a, b) { return b.moy - a.moy; });
+  var rang = 1;
+  sorted.forEach(function(e, i) {
+    if (i > 0 && sorted[i].moy < sorted[i-1].moy) rang = i + 1;
+    e.rang = rang;
+  });
+  donnees.forEach(function(e) {
+    var found = sorted.find(function(s) { return s.nom === e.nom && s.moy === e.moy; });
+    if (found) e.rang = found.rang;
+  });
+  eleves = donnees;
+  afficherResultats();
+}
+
+function afficherResultats() {
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+  var moyClasse = Math.round(eleves.reduce(function(s, e) { return s + e.moy; }, 0) / n * 10) / 10;
+  var noteMax = getNoteMaxForNiveau(getNiveauClasse());
+  var thNoteMax = document.getElementById('th-note-max');
+  if (thNoteMax) thNoteMax.textContent = '/' + noteMax;
+  
+  document.getElementById('stat-cards').innerHTML =
+    '<div class="stat-card A"><div class="val">' + nA + '</div><div class="lbl">Profil A (débutant)<br>' + Math.round(nA/n*100) + '%</div></div>' +
+    '<div class="stat-card B"><div class="val">' + nB + '</div><div class="lbl">Profil B (intermédiaire)<br>' + Math.round(nB/n*100) + '%</div></div>' +
+    '<div class="stat-card C"><div class="val">' + nC + '</div><div class="lbl">Profil C (avancé)<br>' + Math.round(nC/n*100) + '%</div></div>' +
+    '<div class="stat-card avg"><div class="val">' + moyClasse + '</div><div class="lbl">Moyenne /' + noteMax + '<br>(' + Math.round(moyClasse/10*noteMax*10)/10 + ' pts)</div></div>';
+
+  // Bilan des performances officielles — note procédurale sur 6 (collège) ou 7 (lycée)
+  var notesValides = eleves.filter(function(e) { return e.noteOfficielle !== null; });
+  var bilanHtml = '';
+  if (notesValides.length > 0) {
+    var notes = notesValides.map(function(e) { return e.noteOfficielle; });
+    var minNote = Math.min.apply(null, notes);
+    var maxNote = Math.max.apply(null, notes);
+    var moyNote = Math.round(notes.reduce(function(a,b){return a+b;},0)/notes.length*100)/100;
+    var nDebutant = notesValides.filter(function(e) { return (e.noteOfficielle / e.noteMax) < 0.45; }).length;
+    var nIntermediaire = notesValides.filter(function(e) { var r=e.noteOfficielle/e.noteMax; return r >= 0.45 && r < 0.70; }).length;
+    var nAvance = notesValides.filter(function(e) { var r=e.noteOfficielle/e.noteMax; return r >= 0.70 && r < 0.85; }).length;
+    var nExcellent = notesValides.filter(function(e) { return (e.noteOfficielle / e.noteMax) >= 0.85; }).length;
+    var meilleur = notesValides.reduce(function(a,b){ return a.noteOfficielle > b.noteOfficielle ? a : b; });
+    var pctDebutant = Math.round(nDebutant/notesValides.length*100);
+    var pctInter = Math.round(nIntermediaire/notesValides.length*100);
+    var pctAvance = Math.round(nAvance/notesValides.length*100);
+    var pctExcellent = Math.round(nExcellent/notesValides.length*100);
+    
+    var libelleBarème = noteMax === 7 ? 'sur 7' : 'sur 6';
+    bilanHtml = '<h3 style="margin:12px 0 8px;">📊 Bilan des performances officielles — note procédurale ' + libelleBarème + ' (barème ' + getNiveauClasse() + ')</h3>' +
+      '<div class="stat-cards" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr));">' +
+      '<div class="stat-card-note debutant"><div class="val">' + nDebutant + '</div><div class="lbl">🔴 Débutant<br>' + pctDebutant + '%</div></div>' +
+      '<div class="stat-card-note intermediaire"><div class="val">' + nIntermediaire + '</div><div class="lbl">🔄 Intermédiaire<br>' + pctInter + '%</div></div>' +
+      '<div class="stat-card-note avance"><div class="val">' + nAvance + '</div><div class="lbl">✅ Avancé<br>' + pctAvance + '%</div></div>' +
+      '<div class="stat-card-note excellent"><div class="val">' + nExcellent + '</div><div class="lbl">🌟 Excellent<br>' + pctExcellent + '%</div></div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text2);margin-top:6px;">' +
+      '📈 Moyenne classe : <strong>' + moyNote + '/' + noteMax + '</strong> (≈ ' + convertirNoteSur20(moyNote, getNiveauClasse()) + '/20) &nbsp;·&nbsp; ' +
+      '📉 Min : <strong>' + minNote + '/' + noteMax + '</strong> &nbsp;·&nbsp; ' +
+      '📈 Max : <strong>' + maxNote + '/' + noteMax + '</strong> (' + meilleur.nom + ')' +
+      '</div>';
+  } else {
+    bilanHtml = '<div class="alert alert-info">ℹ️ Aucune note officielle calculée. Assurez-vous que chaque élève a un sexe (G/F) et une performance (PERF) renseignés.</div>';
+  }
+  document.getElementById('bilan-officiel').innerHTML = bilanHtml;
+
+  // SA prioritaire par observable (3 critères)
+  var SA_LACUNE = ["SA 2.1 — Dissociation bassin-épaules", "SA 1.1 — Repère angulaire haut et lâcher guidé", "SA 3.1 — Stabilisation du placement initial"];
+  var SA_COURS  = ["SA 2.2 — Chaîne cinétique complète", "SA 1.2 — Indicateurs spatiaux intermédiaires", "SA 3.2 — Élan complet et rétablissement mesuré"];
+  var SA_BON    = ["SA 2.3 — Triple extension + mesure", "SA 1.2 — Angle constant mesuré", "SA 3.3 — Bilan formatif complet"];
+  var obsHtml = '';
+  for (var i = 0; i < 3; i++) {
+    var moyObs = Math.round(eleves.reduce(function(s, e) { return s + e.obs[i]; }, 0) / n * 10) / 10;
+    var cls, statut, sa;
+    if (moyObs < SEUIL_B)      { cls = 'lacune'; statut = '⚠️ Lacune collective — SA prioritaire'; sa = SA_LACUNE[i]; }
+    else if (moyObs < SEUIL_C) { cls = 'cours';  statut = '🔄 En cours — Consolider'; sa = SA_COURS[i]; }
+    else                       { cls = 'bon';    statut = '✅ Bon niveau — Approfondir'; sa = SA_BON[i]; }
+    obsHtml += '<div class="obs-card ' + cls + '"><div class="obs-title">' + OBS_NOMS[i] + '</div><div class="obs-val">' + moyObs + '/10</div><div class="obs-status">' + statut + '</div><div style="font-size:10px;color:var(--text2);margin-top:3px;">' + sa + '</div></div>';
+  }
+  document.getElementById('obs-analysis').innerHTML = obsHtml;
+  
+  var dominant, msg;
+  if (nA >= nB && nA >= nC) { dominant = 'A'; msg = '🔴 Classe débutante — Priorité fondamentaux (angle d\'envol + chaîne cinétique)'; }
+  else if (nC >= nA && nC >= nB) { dominant = 'C'; msg = '🟢 Classe avancée — Approfondissement et tutorat (structuration des appuis et vitesse d\'élan)'; }
+  else { dominant = 'B'; msg = '🟡 Classe intermédiaire — Différenciation A/B active recommandée'; }
+  document.getElementById('decision-box').innerHTML =
+    '<p><strong>Décision dominante automatique :</strong><br>' + msg + '</p>' +
+    '<p style="font-size:11px;color:var(--text2);margin-top:7px;">⚠️ Indicatif — La décision finale reste à l\'enseignant.</p>';
+  
+  var groupesHtml = '<h3 style="margin-bottom:8px;">Groupes de besoin</h3>';
+  ['A','B','C'].forEach(function(p) {
+    var gEleves = eleves.filter(function(e) { return e.profil === p; });
+    if (gEleves.length === 0) return;
+    var saG = p === 'A' ? "SA 1.1 — Repère angulaire haut et lâcher guidé" : p === 'B' ? "SA 1.2/2.2 — Différenciation" : "SA 3.3 — Bilan formatif complet";
+    groupesHtml += '<div class="groupe-need"><span class="badge badge-' + p + '">' + p + '</span><div><strong>' + gEleves.length + ' élève(s)</strong> — ' + saG + '<div style="font-size:11px;color:var(--text2);">' + gEleves.map(function(e) { return e.nom; }).join(', ') + '</div></div></div>';
+  });
+  document.getElementById('groupes-besoin').innerHTML = groupesHtml;
+  
+  var sortedEleves = eleves.slice().sort(function(a, b) { return a.rang - b.rang; });
+  var tbody = '';
+  sortedEleves.forEach(function(e) {
+    var lacStr = e.lacunes.length === 0 ? 'Aucune' : e.lacunes.map(function(l, i) { return 'L'+(i+1)+' — '+OBS_NOMS[l.obs]+' : '+l.val+'/10'; }).join('<br>');
+    var noteStr = e.noteOfficielle !== null ? e.noteOfficielle.toFixed(2) + '/' + e.noteMax : '—';
+    var noteInterp = e.noteInterpretation;
+    tbody += '<tr class="prof-' + e.profil + '" onclick="ouvrirFiche(\'' + e.nom.replace(/'/g, "\\'") + '\')" title="Cliquer pour fiche">' +
+      '<td>' + e.rang + '</td><td><strong>' + e.nom + '</strong></td>' +
+      '<td>' + (e.sexe || '—') + '</td>' +
+      '<td>' + e.obs[0] + '</td><td>' + e.obs[1] + '</td><td>' + e.obs[2] + '</td>' +
+      '<td><strong>' + (e.perf !== '' && e.perf !== undefined ? e.perf + ' m' : '—') + '</strong></td>' +
+      '<td><strong>' + noteStr + '</strong></td>' +
+      '<td><span class="badge ' + noteInterp.cls + '">' + noteInterp.label + '</span></td>' +
+      '<td><span class="badge badge-' + e.profil + '">' + e.profil + '</span></td>' +
+      '<td><small>' + e.profilDetail + '</small></td>' +
+      '<td><small>' + lacStr + '</small></td>' +
+      '<td><small>' + e.axe.substring(0,55) + '...</small></td>' +
+      '<td><small>' + e.sa.substring(0,45) + '...</small></td>' +
+      '</tr>';
+  });
+  document.getElementById('tbody-individuel').innerHTML = tbody;
+  document.getElementById('results1').style.display = 'block';
+  document.getElementById('btn-export').style.display = 'inline-flex';
+}
+
+/* ================================================================
+   NAVIGATION ÉTAPES
+   ================================================================ */
+function goStep(n) {
+  if (n === 2) buildAxes();
+  if (n === 3) { updateSlider(); }
+  if (n === 4) buildPlanning();
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('step' + n).classList.add('active');
+  document.querySelectorAll('.step-item').forEach(function(s, i) {
+    s.classList.remove('active', 'done');
+    if (i + 1 === n) s.classList.add('active');
+    else if (i + 1 < n) s.classList.add('done');
+  });
+  if (n <= 2) { axesSelectionnes = []; }
+  if (n <= 3) { nbSeances = 8; document.getElementById('slider-seances').value = 8; }
+  window.scrollTo(0, 0);
+}
+var currentStep = 1;
+var _origGoStep = goStep;
+goStep = function(n) { currentStep = n; _origGoStep(n); };
+
+/* ================================================================
+   AXES PRIORITAIRES
+   ================================================================ */
+function buildAxes() {
+  var n = eleves.length;
+  var axesData = AXES.map(function(axe) {
+    var lacPct = Math.round(eleves.filter(function(e) { return valVersProfil(e.obs[axe.obs]) === 'A'; }).length / n * 100);
+    var moyObs = Math.round(eleves.reduce(function(s, e) { return s + e.obs[axe.obs]; }, 0) / n * 10) / 10;
+    return { axe: axe, pct: lacPct, moy: moyObs };
+  });
+  axesData.sort(function(a, b) { return b.pct - a.pct; });
+  var html = '';
+  axesData.forEach(function(d) {
+    var prioriteColor = d.axe.priorite === 'HAUTE' ? 'var(--red)' : d.axe.priorite === 'MOYENNE' ? 'var(--orange)' : 'var(--green)';
+    html += '<div class="axe-item" id="axe-item-' + d.axe.id + '" onclick="toggleAxe(' + d.axe.id + ')">' +
+      '<input type="checkbox" id="axe-chk-' + d.axe.id + '" onchange="updateAxeSel()" onclick="event.stopPropagation()">' +
+      '<div style="flex:1;">' +
+        '<div style="float:right;font-size:18px;font-weight:800;color:var(--accent2);">' + d.pct + '%</div>' +
+        '<div class="axe-title">' + d.axe.titre + '</div>' +
+        '<div class="axe-meta">Priorité : <span style="color:' + prioriteColor + ';font-weight:700;">' + d.axe.priorite + '</span> · Observable lié : ' + OBS_NOMS[d.axe.obs] + ' · Moy. classe : ' + d.moy + '/10<br>SA : ' + d.axe.sa.map(function(s) { return s.nom.split(' — ')[0]; }).join(' · ') + '</div>' +
+      '</div></div>';
+  });
+  document.getElementById('axes-list').innerHTML = html;
+  axesSelectionnes = [];
+  updateAxeSel();
+}
+function toggleAxe(id) {
+  var chk = document.getElementById('axe-chk-' + id);
+  chk.checked = !chk.checked;
+  updateAxeSel();
+}
+function updateAxeSel() {
+  axesSelectionnes = [];
+  AXES.forEach(function(a) {
+    var chk = document.getElementById('axe-chk-' + a.id);
+    if (chk && chk.checked) axesSelectionnes.push(a.id);
+  });
+  if (axesSelectionnes.length >= 4) {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk && !chk.checked) { chk.disabled = true; if (item) item.style.opacity = '0.5'; }
+    });
+    document.getElementById('axes-msg').innerHTML = '<div class="alert alert-warn">Maximum 4 axes atteint.</div>';
+  } else {
+    AXES.forEach(function(a) {
+      var chk = document.getElementById('axe-chk-' + a.id);
+      var item = document.getElementById('axe-item-' + a.id);
+      if (chk) { chk.disabled = false; } if (item) item.style.opacity = '1';
+    });
+    document.getElementById('axes-msg').innerHTML = '';
+  }
+  AXES.forEach(function(a) {
+    var item = document.getElementById('axe-item-' + a.id);
+    var chk  = document.getElementById('axe-chk-' + a.id);
+    if (item && chk) item.classList.toggle('selected', chk.checked);
+  });
+  var btn = document.getElementById('btn-step3');
+  btn.disabled = axesSelectionnes.length < 3;
+  if (axesSelectionnes.length < 3) {
+    document.getElementById('axes-msg').innerHTML = '<div class="alert alert-info">Sélectionnez au moins 3 axes pour continuer.</div>';
+  }
+}
+
+/* ================================================================
+   PARAMÉTRAGE CYCLE
+   ================================================================ */
+var DISTRIBUTION = {
+  3: { 6: [2,2,2], 7: [2,2,3], 8: [3,2,3], 9: [3,3,3], 10: [3,4,3] },
+  4: { 6: [1,2,2,1], 7: [2,2,2,1], 8: [2,2,2,2], 9: [2,3,2,2], 10: [3,2,3,2] }
+};
+function updateSlider() {
+  nbSeances = parseInt(document.getElementById('slider-seances').value);
+  var nAxes = Math.max(3, Math.min(4, axesSelectionnes.length || 3));
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) { return AXES.find(function(a) { return a.id === id; }); }).filter(Boolean);
+  var html = '<strong>Cycle de ' + nbSeances + ' séances · ' + nAxes + ' séquences</strong><br>';
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    html += '<div style="margin-top:7px;padding:6px 10px;background:var(--surface);border-radius:6px;border-left:3px solid var(--accent);">Séquence ' + (i+1) + ' (' + ns + ' séance' + (ns>1?'s':'') + ') — ' + (axe ? axe.titre.substring(0,70) + '...' : '') + '</div>';
+  });
+  document.getElementById('slider-display').innerHTML = html;
+}
+
+/* ================================================================
+   PLANIFICATION
+   ================================================================ */
+function buildPlanning() {
+  var nAxes = Math.max(3, Math.min(4, axesSelectionnes.length));
+  var dist = DISTRIBUTION[nAxes][nbSeances] || DISTRIBUTION[3][8];
+  var axesObjs = axesSelectionnes.map(function(id) { return AXES.find(function(a) { return a.id === id; }); }).filter(Boolean);
+  var n = eleves.length;
+  var nA = eleves.filter(function(e) { return e.profil === 'A'; }).length;
+  var nB = eleves.filter(function(e) { return e.profil === 'B'; }).length;
+  var nC = eleves.filter(function(e) { return e.profil === 'C'; }).length;
+  var html = '';
+  var seanceGlobale = 0;
+  dist.forEach(function(nbS, seqIdx) {
+    var axe = axesObjs[seqIdx] || axesObjs[axesObjs.length - 1];
+    var seqNum = seqIdx + 1;
+    var objectif = seqIdx === 0 ? "Fondamentaux — tous groupes" : seqIdx === dist.length - 1 ? "Consolidation et évaluation formative" : "Différenciation A/B/C active";
+    html += '<div class="seq-block"><div class="seq-header">' +
+      'Séquence ' + seqNum + ' — ' + axe.titre.substring(0,55) + '...' +
+      '<span style="font-size:10px;font-weight:400;">' + nbS + ' séance(s)</span>' +
+      '</div>' +
+      '<table class="seq-table"><tr><th>Séance</th><th>Axe</th><th>Objectif</th>' +
+      '<th style="color:var(--red);">Groupe A — Débutants</th>' +
+      '<th style="color:var(--orange);">Groupe B — Intermédiaires</th>' +
+      '<th style="color:var(--green);">Groupe C — Avancés</th></tr>';
+    for (var s = 0; s < nbS; s++) {
+      seanceGlobale++;
+      var saIdx = Math.min(s, axe.sa.length - 1);
+      var saData = axe.sa[saIdx];
+      var isLast = (s === nbS - 1) && (seqIdx === dist.length - 1);
+      html += '<tr><td style="white-space:nowrap;"><strong>S' + seanceGlobale + '</strong></td>' +
+        '<td style="font-size:10px;">' + axe.titre.split(' — ')[0] + '</td>' +
+        '<td style="font-size:10px;">' + objectif + '</td>' +
+        '<td class="grp-A"><div class="sa-name">' + saData.groupeA.sa + '</div><div class="consigne">' + saData.groupeA.consigne + '</div><div class="critere">✓ ' + saData.groupeA.critere + '</div></td>' +
+        '<td class="grp-B"><div class="sa-name">' + saData.groupeB.sa + '</div><div class="consigne">' + saData.groupeB.consigne + '</div><div class="critere">✓ ' + saData.groupeB.critere + '</div></td>' +
+        '<td class="grp-C"><div class="sa-name">' + saData.groupeC.sa + '</div><div class="consigne">' + saData.groupeC.consigne + '</div><div class="critere">✓ ' + saData.groupeC.critere + '</div></td></tr>';
+      if (!isLast && saData.indicatif) {
+        html += '<tr><td colspan="6"><div class="indicatif">📋 À observer avant S' + (seanceGlobale+1) + ' — ' + saData.indicatif + '<br><em>(Indicatif — décision de progression : vous)</em></div></td></tr>';
+      }
+    }
+    html += '</table></div>';
+  });
+  document.getElementById('planning-content').innerHTML = html;
+  var profilDominant = nA >= nB && nA >= nC ? 'A' : nC >= nA && nC >= nB ? 'C' : 'B';
+  var profilN = profilDominant === 'A' ? nA : profilDominant === 'B' ? nB : nC;
+  var seqReval = Math.ceil(dist.length / 2);
+  var summaryHtml = '<div class="card" style="margin-top:18px;"><h2>📋 Résumé du cycle</h2><table class="cycle-summary"><tr><th>Séquence</th><th>Axes travaillés</th><th>Nb séances</th><th>Profil ciblé</th></tr>';
+  dist.forEach(function(ns, i) {
+    var axe = axesObjs[i] || axesObjs[axesObjs.length - 1];
+    var cible = i === 0 ? 'Tous' : i === dist.length - 1 ? 'B → C' : 'A + B';
+    summaryHtml += '<tr><td>Séquence ' + (i+1) + '</td><td>' + axe.titre.substring(0,45) + '...</td><td>' + ns + '</td><td>' + cible + '</td></tr>';
+  });
+  summaryHtml += '</table><div class="reco-box">Cycle de <strong>' + nbSeances + ' séances</strong> · <strong>' + nAxes + ' axes</strong>. Profil dominant : <strong>' + profilDominant + ' (' + profilN + ' élèves · ' + Math.round(profilN/n*100) + '%)</strong>. Réévaluer après la séquence <strong>' + seqReval + '</strong>.<br><br><em>⚠️ L\'outil ne produit pas de note. La décision finale reste à l\'enseignant.</em></div></div>';
+  document.getElementById('cycle-summary').innerHTML = summaryHtml;
+  buildTimeline(nbSeances);
+}
+
+/* ================================================================
+   EXPORT CSV RÉSULTATS
+   ================================================================ */
+function exportCSV() {
+  if (eleves.length === 0) { alert("Aucune donnée. Lancez d'abord l'analyse."); return; }
+  var BOM = '\uFEFF';
+  var cols = ['Prénom','Sexe','Niveau','PERF (m)','Note procédurale','Note /20 (équiv.)','Interprétation','Code OBS-01','OBS-01','Code OBS-02','OBS-02','Code OBS-03','OBS-03','Rang','Profil global','Profil détaillé','Lacune 1','SA recommandée'];
+  function toCode(v) { if(v>=SEUIL_C) return 'C'; if(v>=SEUIL_B) return 'B'; return 'A'; }
+  var rows = [cols.join(';')];
+  eleves.forEach(function(e) {
+    var l1 = e.lacunes.length > 0 ? OBS_NOMS[e.lacunes[0].obs] + ' : ' + e.lacunes[0].val + '/10' : 'Aucune';
+    var noteStr = e.noteOfficielle !== null ? e.noteOfficielle.toFixed(2) + '/' + e.noteMax : '';
+    var noteSur20Str = e.noteSur20 !== null && e.noteSur20 !== undefined ? e.noteSur20.toFixed(2) : '';
+    var interp = e.noteInterpretation.label;
+    rows.push([e.nom, e.sexe||'', e.niveau||'', e.perf||'', noteStr, noteSur20Str, interp, toCode(e.obs[0]),e.obs[0], toCode(e.obs[1]),e.obs[1], toCode(e.obs[2]),e.obs[2], e.rang, e.profil, e.profilDetail, l1, e.sa].join(';'));
+  });
+  var d = new Date();
+  var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var blob = new Blob([BOM + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = 'ADP2026_Resultats_' + dateStr + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ================================================================
+   EXPORT / IMPORT JSON SESSION COMPLÈTE
+   ================================================================ */
+function exporterSession() {
+  sauvegarderDonneesClasse(classeActiveId);
+  var session = {
+    version: "ADP2026-v1",
+    exportDate: new Date().toISOString(),
+    classes: classes,
+    classeActiveId: classeActiveId,
+    notes: JSON.parse(localStorage.getItem('adp_notes') || '{}'),
+    timeline: JSON.parse(localStorage.getItem('adp_timeline') || '{}'),
+    theme: localStorage.getItem('adp_theme') || 'dark',
+    tablet: localStorage.getItem('adp_tablet') || '0'
+  };
+  var blob = new Blob([JSON.stringify(session, null, 2)], { type: 'application/json;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var d = new Date();
+  var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var a = document.createElement('a'); a.href = url; a.download = 'session_ADP2026_' + dateStr + '.json'; a.click();
+  URL.revokeObjectURL(url);
+  showImportMsg('✅ Session exportée avec succès. Gardez ce fichier pour restaurer votre travail.', 'info');
+}
+
+function importerSession(event) {
+  var file = event.target.files[0]; if (!file) return;
+  event.target.value = '';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var session = JSON.parse(e.target.result);
+      if (!session.version || !session.classes) throw new Error('Format invalide');
+      if (!confirm('Importer cette session ? Les données actuelles seront remplacées.')) return;
+      classes = session.classes || [];
+      classeActiveId = session.classeActiveId || (classes[0] && classes[0].id) || null;
+      if (session.notes) localStorage.setItem('adp_notes', JSON.stringify(session.notes));
+      if (session.timeline) localStorage.setItem('adp_timeline', JSON.stringify(session.timeline));
+      if (session.theme) { localStorage.setItem('adp_theme', session.theme); if (session.theme === 'light') { document.body.classList.add('light'); document.getElementById('theme-btn').textContent = '🌙 Mode sombre'; } else { document.body.classList.remove('light'); document.getElementById('theme-btn').textContent = '☀️ Mode clair'; } }
+      sauvegarderClasses();
+      renderClassesTabs();
+      chargerDonneesClasse(classeActiveId);
+      eleves = [];
+      document.getElementById('results1').style.display = 'none';
+      showImportMsg('✅ Session importée avec succès — ' + classes.length + ' classe(s) restaurée(s). Export : ' + (session.exportDate ? session.exportDate.split('T')[0] : 'inconnu'), 'success');
+    } catch(err) {
+      showImportMsg('❌ Erreur import : fichier JSON invalide ou corrompu. (' + err.message + ')', 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+/* ================================================================
+   RÉINITIALISATION SESSION
+   ================================================================ */
+function demanderReset() {
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function fermerConfirm() {
+  document.getElementById('confirm-modal').classList.remove('open');
+}
+function confirmerReset() {
+  var keysToRemove = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key && (key.startsWith('adp_') || key === 'adp_tuto_done')) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+
+  classes = [];
+  classeActiveId = null;
+  eleves = [];
+  axesSelectionnes = [];
+  nbSeances = 8;
+
+  initClasses();
+  chargerDonneesClasse(classeActiveId);
+
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  document.getElementById('import-msg').innerHTML = '';
+  goStep(1);
+  fermerConfirm();
+  showImportMsg('✅ Session réinitialisée. Toutes les données ont été effacées.', 'success');
+}
+
+/* ================================================================
+   SAUVEGARDE LOCALE AUTOMATIQUE
+   ================================================================ */
+var saveTimer = null;
+function sauvegarderDonnees() {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var data = [];
+  rows.forEach(function(row) {
+    var nomI  = row.querySelector('input[type="text"]:not([data-obs])') || row.querySelectorAll('input')[0];
+    var obs1I = row.querySelector('input[data-obs="1"]');
+    var obs2I = row.querySelector('input[data-obs="2"]');
+    var obs3I = row.querySelector('input[data-obs="3"]');
+    var perfI = row.querySelector('input[data-obs="perf"]');
+    var sexeI = row.querySelector('select[data-obs="sexe"]');
+    data.push({ nom: nomI?nomI.value:'', sexe: sexeI?sexeI.value:'', obs1: obs1I?obs1I.value:'', obs2: obs2I?obs2I.value:'', obs3: obs3I?obs3I.value:'', perf: perfI?perfI.value:'' });
+  });
+  localStorage.setItem('adp_donnees', JSON.stringify(data));
+  var ind = document.getElementById('save-indicator');
+  ind.style.opacity = '1';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() { ind.style.opacity = '0'; }, 1800);
+}
+function restaurerDonnees() {
+  var raw = localStorage.getItem('adp_donnees');
+  if (!raw) return;
+  try {
+    var data = JSON.parse(raw);
+    if (!data || data.length === 0) return;
+    document.getElementById('rows-container').innerHTML = '';
+    data.forEach(function(d) { addRow(d.nom, d.sexe, d.obs1, d.obs2, d.obs3, d.perf); });
+  } catch(e) {}
+}
+function sauvegarderNote() {
+  var nom = document.getElementById('fiche-titre').dataset.nom;
+  if (!nom) return;
+  var note = document.getElementById('fiche-notes').value;
+  var notes = JSON.parse(localStorage.getItem('adp_notes') || '{}');
+  notes[nom] = note;
+  localStorage.setItem('adp_notes', JSON.stringify(notes));
+}
+document.addEventListener('input', function(evt) {
+  if (evt.target && (evt.target.dataset.obs !== undefined || evt.target.closest('#rows-container'))) {
+    clearTimeout(window._autoSaveDebounce);
+    window._autoSaveDebounce = setTimeout(sauvegarderDonnees, 800);
+  }
+});
+
+/* ================================================================
+   THÈME, TABLETTE, DIVERS
+   ================================================================ */
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  var isLight = document.body.classList.contains("light");
+  document.getElementById('theme-btn').textContent = isLight ? "🌙 Mode sombre" : "☀️ Mode clair";
+  localStorage.setItem('adp_theme', isLight ? 'light' : 'dark');
+}
+
+var tabletMode = false;
+function toggleTabletMode() {
+  tabletMode = !tabletMode;
+  document.body.classList.toggle('tablet-mode', tabletMode);
+  var btn = document.getElementById('tablet-toggle');
+  if (btn) { btn.textContent = tabletMode ? '⌨️ Normal' : '📱 Tablette'; btn.classList.toggle('on', tabletMode); }
+  localStorage.setItem('adp_tablet', tabletMode ? '1' : '0');
+  document.querySelectorAll('#rows-container .student-row').forEach(function(row) { injecterBoutonsObs(row); });
+}
+function injecterBoutonsObs(row) {
+  [1, 2, 3].forEach(function(obsNum) {
+    var input = row.querySelector('input[data-obs="' + obsNum + '"]'); if (!input) return;
+    var existing = row.querySelector('.obs-btn-group[data-obs-btn="' + obsNum + '"]');
+    if (!existing) {
+      var group = document.createElement('div');
+      group.className = 'obs-btn-group';
+      group.setAttribute('data-obs-btn', obsNum);
+      ['A','B','C'].forEach(function(code) {
+        var btn = document.createElement('button');
+        btn.className = 'obs-btn'; btn.textContent = code; btn.type = 'button';
+        btn.onclick = (function(inp, grp, c) { return function() {
+          inp.value = c;
+          grp.querySelectorAll('.obs-btn').forEach(function(b) { b.classList.remove('sel-A','sel-B','sel-C'); });
+          btn.classList.add('sel-' + c);
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }; })(input, group, code);
+        group.appendChild(btn);
+      });
+      input.parentNode.insertBefore(group, input.nextSibling);
+    }
+    var grp = row.querySelector('.obs-btn-group[data-obs-btn="' + obsNum + '"]');
+    if (grp) {
+      var val = input.value.trim().toUpperCase();
+      grp.querySelectorAll('.obs-btn').forEach(function(b) { b.classList.remove('sel-A','sel-B','sel-C'); if (b.textContent === val) b.classList.add('sel-' + val); });
+    }
+  });
+}
+
+function colorerPerf(input) {
+  var v = parseFloat(String(input.value).replace(',', '.'));
+  input.classList.remove('perf-low', 'perf-ok', 'perf-high');
+  if (isNaN(v) || input.value === '') return;
+  if (v < 5) input.classList.add('perf-low');
+  else if (v <= 7) input.classList.add('perf-ok');
+  else input.classList.add('perf-high');
+}
+
+/* ================================================================
+   FICHE ÉLÈVE — MODAL
+   ================================================================ */
+function ouvrirFiche(nomEleve) {
+  var e = eleves.find(function(el) { return el.nom === nomEleve; }); if (!e) return;
+  var titre = document.getElementById('fiche-titre');
+  titre.textContent = '📋 ' + e.nom; titre.dataset.nom = e.nom;
+  var obsNames = ['OBS-01\nTrajet', 'OBS-02\nTrajectoire', 'OBS-03\nÉquilibre'];
+  var obsHtml = '';
+  e.obs.forEach(function(v, i) {
+    var p = valVersProfil(v);
+    obsHtml += '<div class="fiche-obs-card ' + p + '"><div class="foc-lbl">' + obsNames[i].replace('\n','<br>') + '</div><div class="foc-val">' + v + '/10</div><div style="font-size:10px;color:var(--text2);">Profil ' + p + '</div></div>';
+  });
+  document.getElementById('fiche-obs').innerHTML = obsHtml;
+  var lacStr = e.lacunes.length === 0 ? 'Aucune' : e.lacunes.map(function(l) { return OBS_NOMS[l.obs] + ' (' + l.val + '/10)'; }).join(', ');
+  var noteMax = e.noteMax || getNoteMaxForNiveau(getNiveauClasse());
+  var noteStr = e.noteOfficielle !== null ? e.noteOfficielle.toFixed(2) + '/' + noteMax + ' (≈ ' + (e.noteSur20 !== null && e.noteSur20 !== undefined ? e.noteSur20.toFixed(1) : '—') + '/20)' : 'Non calculée';
+  var noteInterp = e.noteInterpretation;
+  document.getElementById('fiche-details').innerHTML =
+    '<div class="fiche-row"><span>Profil global</span><span><span class="badge badge-' + e.profil + '">' + e.profil + '</span></span></div>' +
+    '<div class="fiche-row"><span>Moyenne observables</span><span>' + e.moy + '/10</span></div>' +
+    '<div class="fiche-row"><span>Performance</span><span>' + (e.perf ? e.perf + ' m' : '—') + '</span></div>' +
+    '<div class="fiche-row"><span>Note procédurale (barème)</span><span><span class="badge ' + noteInterp.cls + '">' + noteStr + '</span></span></div>' +
+    '<div class="fiche-row"><span>Interprétation</span><span>' + noteInterp.label + '</span></div>' +
+    '<div class="fiche-row"><span>Rang</span><span>' + e.rang + '</span></div>' +
+    '<div class="fiche-row"><span>Lacune(s)</span><span style="font-size:11px;text-align:right;max-width:60%;">' + lacStr + '</span></div>' +
+    '<div class="fiche-row"><span>SA recommandée</span><span style="font-size:10px;text-align:right;max-width:60%;">' + e.sa + '</span></div>';
+  var notes = JSON.parse(localStorage.getItem('adp_notes') || '{}');
+  document.getElementById('fiche-notes').value = notes[e.nom] || '';
+  dessinerRadar(e.obs);
+  document.getElementById('modal-fiche').classList.add('open');
+}
+function fermerFiche(event) {
+  if (event.target === document.getElementById('modal-fiche')) document.getElementById('modal-fiche').classList.remove('open');
+}
+
+/* ================================================================
+   RADAR (3 axes : OBS-01, OBS-02, OBS-03)
+   ================================================================ */
+function dessinerRadar(obs) {
+  var canvas = document.getElementById('fiche-radar');
+  var ctx = canvas.getContext('2d');
+  var W = 200, H = 200, cx = 100, cy = 105, R = 70;
+  ctx.clearRect(0, 0, W, H);
+  var labels = ['OBS-01', 'OBS-02', 'OBS-03'];
+  var angles = [-Math.PI/2, 0, Math.PI/2];
+  var isDark = !document.body.classList.contains('light');
+  var gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  var labelColor = isDark ? '#8b91b5' : '#5a6080';
+  [2,4,6,8,10].forEach(function(v) {
+    ctx.beginPath();
+    angles.forEach(function(a, i) { var x = cx + (R*v/10)*Math.cos(a); var y = cy + (R*v/10)*Math.sin(a); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+    ctx.closePath(); ctx.strokeStyle = gridColor; ctx.lineWidth = 1; ctx.stroke();
+  });
+  angles.forEach(function(a) { ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a)); ctx.strokeStyle=gridColor; ctx.lineWidth=1; ctx.stroke(); });
+  ctx.beginPath();
+  obs.forEach(function(v, i) { var x=cx+(R*v/10)*Math.cos(angles[i]); var y=cy+(R*v/10)*Math.sin(angles[i]); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.closePath(); ctx.fillStyle='rgba(79,142,247,0.25)'; ctx.fill(); ctx.strokeStyle='#4f8ef7'; ctx.lineWidth=2; ctx.stroke();
+  obs.forEach(function(v,i){ var x=cx+(R*v/10)*Math.cos(angles[i]); var y=cy+(R*v/10)*Math.sin(angles[i]); ctx.beginPath(); ctx.arc(x,y,4,0,2*Math.PI); ctx.fillStyle='#4f8ef7'; ctx.fill(); });
+  ctx.fillStyle=labelColor; ctx.font='11px Segoe UI, sans-serif'; ctx.textAlign='center';
+  labels.forEach(function(lbl,i){ var x=cx+(R+16)*Math.cos(angles[i]); var y=cy+(R+16)*Math.sin(angles[i])+4; ctx.fillText(lbl,x,y); });
+  ctx.font='bold 11px Segoe UI, sans-serif'; ctx.fillStyle='#4f8ef7';
+  obs.forEach(function(v,i){ var x=cx+(R*v/10+13)*Math.cos(angles[i]); var y=cy+(R*v/10+13)*Math.sin(angles[i])+4; ctx.fillText(v,x,y); });
+}
+
+/* ================================================================
+   TIMELINE PROGRESSION
+   ================================================================ */
+var tlEtat = {};
+function buildTimeline(nbS) {
+  var saved = localStorage.getItem('adp_timeline');
+  if (saved) { try { tlEtat = JSON.parse(saved); } catch(e) { tlEtat = {}; } }
+  renderTimeline(nbS);
+}
+function renderTimeline(nbS) {
+  var done = 0;
+  for (var k in tlEtat) { if (tlEtat[k]) done++; }
+  var pct = nbS > 0 ? Math.round(done / nbS * 100) : 0;
+  var prochaine = -1;
+  for (var s = 1; s <= nbS; s++) { if (!tlEtat['S'+s]) { prochaine = s; break; } }
+  var wrap = document.createElement('div'); wrap.className = 'timeline-wrap';
+  var titre = document.createElement('h3'); titre.textContent = '📈 Progression du cycle'; wrap.appendChild(titre);
+  var bar = document.createElement('div'); bar.className = 'timeline-bar';
+  for (var s = 1; s <= nbS; s++) {
+    var key = 'S' + s; var isDone = !!tlEtat[key]; var isCurrent = (s === prochaine);
+    var cls = isDone ? 'done' : (isCurrent ? 'current' : '');
+    var seance = document.createElement('div'); seance.className = 'tl-seance';
+    seance.title = isDone ? 'Marquer non réalisée' : 'Marquer réalisée';
+    seance.onclick = (function(k, n) { return function() { toggleSeance(k, n); }; })(key, nbS);
+    var chk = document.createElement('div'); chk.className = 'tl-check' + (cls ? ' ' + cls : ''); chk.textContent = isDone ? '✓' : String(s);
+    var lbl = document.createElement('div'); lbl.className = 'tl-lbl'; lbl.textContent = 'S' + s;
+    seance.appendChild(chk); seance.appendChild(lbl); bar.appendChild(seance);
+  }
+  wrap.appendChild(bar);
+  var track = document.createElement('div'); track.className = 'tl-progress-track';
+  var fill = document.createElement('div'); fill.className = 'tl-progress-fill'; fill.style.width = pct + '%';
+  track.appendChild(fill); wrap.appendChild(track);
+  var stats = document.createElement('div'); stats.className = 'tl-stats';
+  stats.innerHTML = '<span>✅ <strong>' + done + ' / ' + nbS + '</strong> séances réalisées</span><span>📊 <strong>' + pct + '%</strong> du cycle</span>' + (prochaine > 0 ? '<span>▶ Prochaine : <strong>Séance ' + prochaine + '</strong></span>' : '<span>🎉 <strong>Cycle terminé !</strong></span>');
+  wrap.appendChild(stats);
+  var container = document.getElementById('timeline-progression');
+  container.innerHTML = ''; container.appendChild(wrap);
+}
+function toggleSeance(key, nbS) {
+  tlEtat[key] = !tlEtat[key];
+  localStorage.setItem('adp_timeline', JSON.stringify(tlEtat));
+  renderTimeline(nbS);
+}
+
+/* ================================================================
+   COMPARAISON AVANT / APRÈS
+   ================================================================ */
+var compData = { avant: null, apres: null };
+function chargerCompCSV(event, periode) {
+  var file = event.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var elvsData = parserCSVComp(e.target.result);
+    if (!elvsData || elvsData.length === 0) { afficherCompMsg('Erreur : fichier ' + periode + ' invalide ou vide.', 'err'); return; }
+    compData[periode] = elvsData;
+    var el = document.getElementById('comp-drop-' + periode);
+    var nm = document.getElementById('comp-' + periode + '-name');
+    if (el) el.classList.add('loaded');
+    if (nm) nm.textContent = '✓ ' + file.name + ' (' + elvsData.length + ' élèves)';
+    afficherCompMsg('', 'info');
+    document.getElementById('btn-comparer').disabled = !(compData.avant && compData.apres);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+function parserCSVComp(text) {
+  var lines = text.split(/\r?\n/); var headerIdx = -1;
+  for (var i = 0; i < lines.length; i++) { var low = lines[i].toLowerCase(); if (low.indexOf('nom') > -1 || low.indexOf('prenom') > -1) { headerIdx = i; break; } }
+  if (headerIdx < 0) return null;
+  var sep = lines[headerIdx].indexOf('\t')>-1?'\t':lines[headerIdx].indexOf(';')>-1?';':',';
+  var headers = lines[headerIdx].split(sep).map(function(h){return h.trim().replace(/"/g,'').toLowerCase();});
+  function fc(pats){for(var p=0;p<pats.length;p++)for(var h=0;h<headers.length;h++)if(headers[h].indexOf(pats[p])>-1)return h;return -1;}
+  var nomCol=fc(['nom et prenom','nom_eleve','prenom','nom']),obs1Col=fc(['trajet','obs01','obs-01','obs1']),obs2Col=fc(['trajectoire','obs02','obs-02','obs2']),obs3Col=fc(['equilibre','obs03','obs-03','obs3']),perfCol=fc(['perf']);
+  var result=[];
+  for(var j=headerIdx+1;j<lines.length;j++){
+    var line=lines[j].trim();if(!line||line.toLowerCase().indexOf('bilan')>-1)continue;
+    var cols=line.split(sep);if(cols.length<2)continue;
+    var nom=nomCol>=0?cols[nomCol]:cols[0];nom=nom?nom.trim().replace(/"/g,''):'';if(!nom||/^\d+$/.test(nom))continue;
+    function getObs(col){if(col<0||!cols[col])return null;var v=cols[col].trim().replace(/"/g,'').replace(/[()]/g,'').toUpperCase();if(v==='A')return 3;if(v==='B')return 6;if(v==='C')return 9;var n=parseFloat(v.replace(',','.'));return(!isNaN(n)&&n>=0&&n<=10)?n:null;}
+    var o1=getObs(obs1Col),o2=getObs(obs2Col),o3=getObs(obs3Col);
+    var perf=perfCol>=0&&cols[perfCol]?parseFloat(cols[perfCol].trim().replace(',','.')):null;
+    if(o1===null||o2===null||o3===null||perf===null||isNaN(perf))continue;
+    var moy=Math.round((o1+o2+o3)/3*10)/10;
+    result.push({nom:nom,obs:[o1,o2,o3],moy:moy,perf:perf});
+  }
+  return result;
+}
+function lancerComparaison() {
+  if (!compData.avant || !compData.apres) return;
+  var avant = compData.avant, apres = compData.apres;
+  var paires = [];
+  avant.forEach(function(a){ var match=apres.find(function(b){return b.nom.toLowerCase()===a.nom.toLowerCase();}); if(match)paires.push({nom:a.nom,avant:a,apres:match}); });
+  if (paires.length === 0) { afficherCompMsg('Aucun élève en commun trouvé. Vérifiez les prénoms.', 'warn'); return; }
+  var moyAvant=Math.round(avant.reduce(function(s,e){return s+e.moy;},0)/avant.length*10)/10;
+  var moyApres=Math.round(apres.reduce(function(s,e){return s+e.moy;},0)/apres.length*10)/10;
+  var deltaMoy=Math.round((moyApres-moyAvant)*10)/10;
+  var ameliores=paires.filter(function(p){return p.apres.moy>p.avant.moy;}).length;
+  var stables=paires.filter(function(p){return p.apres.moy===p.avant.moy;}).length;
+  var baisses=paires.filter(function(p){return p.apres.moy<p.avant.moy;}).length;
+  function profilCls(v){if(v>=7.5)return 'C';if(v>=5)return 'B';return 'A';}
+  function deltaHtml(d){if(d>0)return '<span class="delta-pos">▲ +'+d+'</span>';if(d<0)return '<span class="delta-neg">▼ '+d+'</span>';return '<span class="delta-neu">= 0</span>';}
+  var sumHtml='<div class="comp-summary"><div class="comp-sum-card neu"><div class="csv">Moy. AVANT</div><div class="val">'+moyAvant+'</div><div class="csv">/10</div></div><div class="comp-sum-card neu"><div class="csv">Moy. APRÈS</div><div class="val">'+moyApres+'</div><div class="csv">/10</div></div><div class="comp-sum-card '+(deltaMoy>0?'pos':deltaMoy<0?'neg':'neu')+'"><div class="csv">Évolution</div><div class="val">'+(deltaMoy>0?'+':'')+deltaMoy+'</div><div class="csv">pts</div></div><div class="comp-sum-card pos"><div class="csv">Améliorés</div><div class="val">'+ameliores+'</div></div><div class="comp-sum-card neu"><div class="csv">Stables</div><div class="val">'+stables+'</div></div><div class="comp-sum-card neg"><div class="csv">En baisse</div><div class="val">'+baisses+'</div></div></div>';
+  var tbody='';
+  paires.sort(function(a,b){return(b.apres.moy-b.avant.moy)-(a.apres.moy-a.avant.moy);});
+  paires.forEach(function(p){
+    var dMoy=Math.round((p.apres.moy-p.avant.moy)*10)/10;
+    var dO1=Math.round((p.apres.obs[0]-p.avant.obs[0])*10)/10;
+    var dO2=Math.round((p.apres.obs[1]-p.avant.obs[1])*10)/10;
+    var dO3=Math.round((p.apres.obs[2]-p.avant.obs[2])*10)/10;
+    var dPerf=(p.avant.perf&&p.apres.perf)?Math.round((p.apres.perf-p.avant.perf)*100)/100:null;
+    var pAvant=profilCls(p.avant.moy),pApres=profilCls(p.apres.moy);
+    var profilChange=pAvant!==pApres?'<span class="badge badge-'+pAvant+'">'+pAvant+'</span> → <span class="badge badge-'+pApres+'">'+pApres+'</span>':'<span class="badge badge-'+pApres+'">'+pApres+'</span>';
+    tbody+='<tr><td><strong>'+p.nom+'</strong></td><td>'+p.avant.moy+'</td><td>'+p.apres.moy+'</td><td>'+deltaHtml(dMoy)+'</td><td>'+deltaHtml(dO1)+'</td><td>'+deltaHtml(dO2)+'</td><td>'+deltaHtml(dO3)+'</td><td>'+profilChange+'</td><td>'+(dPerf!==null?deltaHtml(dPerf)+' m':'—')+'</td></tr>';
+  });
+  var html=sumHtml+'<div class="table-wrap"><table class="comp-table"><thead><tr><th>Élève</th><th>Moy avant</th><th>Moy après</th><th>Δ Moy</th><th>Δ OBS-01</th><th>Δ OBS-02</th><th>Δ OBS-03</th><th>Profil</th><th>Δ PERF</th></tr></thead><tbody>'+tbody+'</tbody></table></div><div class="alert alert-info" style="margin-top:10px;">'+paires.length+' élèves comparés · '+(avant.length-paires.length)+' non appariés.</div>';
+  document.getElementById('comp-results').innerHTML = html;
+  afficherCompMsg('', 'info');
+}
+function afficherCompMsg(msg, type) {
+  document.getElementById('comp-msg').innerHTML = msg ? '<div class="alert alert-' + type + '">' + msg + '</div>' : '';
+}
+
+/* ================================================================
+   IMPRESSION
+   ================================================================ */
+var STEP_TITRES = { 1: 'Diagnostic de classe', 2: 'Axes prioritaires', 3: 'Paramétrage du cycle', 4: 'Planification du cycle', 5: 'Comparaison avant / après' };
+function getStepHTML(stepNum) { var el = document.getElementById('step' + stepNum); return el ? el.innerHTML : ''; }
+function buildPrintWindow(titre, bodyHTML) {
+  var styles = '';
+  document.querySelectorAll('style').forEach(function(s) { styles += s.innerHTML; });
+  var win = window.open('', '_blank');
+  if (!win) { alert('Autorisez les pop-ups pour imprimer.'); return; }
+  win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' + titre + ' — ADP 2026</title>');
+  win.document.write('<style>' + styles + '</style>');
+  win.document.write('<style>body{background:#fff!important;color:#111!important;font-size:11pt;}.section{display:block!important;}.btn,.no-print,.session-toolbar,.classes-bar,.privacy-banner{display:none!important;}.card{border:1px solid #bbb!important;background:#fff!important;page-break-inside:avoid;}.data-table th,.seq-table th,.cycle-summary th,.comp-table th{background:#e8eaf2!important;color:#222!important;}.data-table td,.seq-table td,.cycle-summary td,.comp-table td{color:#111!important;border-color:#ccc!important;}.data-table tr.prof-A td{background:#fff0f0!important;}.data-table tr.prof-B td{background:#fff8e8!important;}.data-table tr.prof-C td{background:#f0fff8!important;}.seq-table td.grp-A{background:#fff0f0!important;}.seq-table td.grp-B{background:#fff8e8!important;}.seq-table td.grp-C{background:#f0fff8!important;}.stat-card{background:#f5f5f5!important;border:1px solid #ccc!important;}.stat-card.A .val{color:#c0392b!important;}.stat-card.B .val{color:#e67e22!important;}.stat-card.C .val{color:#27ae60!important;}.stat-card.avg .val{color:#2980b9!important;}.badge-A{background:#fde8e8!important;color:#c0392b!important;}.badge-B{background:#fdf3e0!important;color:#e67e22!important;}.badge-C{background:#e8fdf0!important;color:#27ae60!important;}.decision-box{border-color:#e67e22!important;background:#fffbf0!important;}.seq-header{background:#4f8ef7!important;color:#fff!important;}.reco-box{background:#eef4ff!important;border-color:#4f8ef7!important;color:#111!important;}.table-wrap{overflow:visible!important;}.sa-name{color:#b8860b!important;}.critere{color:#27ae60!important;}.comp-sum-card{background:#f5f5f5!important;border-color:#ccc!important;}.comp-sum-card.pos .val{color:#27ae60!important;}.comp-sum-card.neg .val{color:#c0392b!important;}.delta-pos{color:#27ae60!important;}.delta-neg{color:#c0392b!important;}@page{margin:1.5cm;}</style>');
+  var d = new Date();
+  win.document.write('</head><body>');
+  win.document.write('<div style="border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px;"><strong style="font-size:14pt;color:#111;">ADP 2026 — ' + titre + '</strong><br><span style="font-size:9pt;color:#555;">CRMEF Inezgane · EPS · Lancer de Poids DI-POI · Imprimé le ' + d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear() + '</span></div>');
+  win.document.write('<div>' + bodyHTML + '</div></body></html>');
+  win.document.close();
+  win.onload = function() { win.focus(); win.print(); };
+  setTimeout(function() { try { win.focus(); win.print(); } catch(ex){} }, 600);
+}
+function togglePrintMenu() { document.getElementById('print-menu').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('print-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) { var menu = document.getElementById('print-menu'); if (menu) menu.classList.remove('open'); }
+});
+function imprimerPage() { document.getElementById('print-menu').classList.remove('open'); var titre = STEP_TITRES[currentStep] || 'Page'; var html = getStepHTML(currentStep); if (!html || !html.trim()) { alert('Pas de contenu.'); return; } buildPrintWindow(titre, html); }
+function imprimerSection(num) { document.getElementById('print-menu').classList.remove('open'); var titre = STEP_TITRES[num] || 'Section ' + num; var html = getStepHTML(num); if (!html || !html.trim()) { alert('Section "' + titre + '" vide. Naviguez d\'abord vers cette étape.'); return; } buildPrintWindow(titre, html); }
+function imprimerTout() {
+  document.getElementById('print-menu').classList.remove('open');
+  var html = '';
+  for (var i = 1; i <= 5; i++) { var sh = getStepHTML(i); if (sh && sh.trim()) html += '<h2 style="margin-top:20px;border-top:2px solid #4f8ef7;padding-top:12px;color:#2a2a2a;">' + STEP_TITRES[i] + '</h2>' + sh; }
+  if (!html) { alert('Aucun contenu.'); return; }
+  buildPrintWindow('Rapport complet', html);
+}
+
+/* ================================================================
+   EXPORT PDF GRILLE TERRAIN — 40 LIGNES SYSTÉMATIQUES (Recto/Verso A4)
+   ================================================================ */
+function escHTML(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function exporterGrillePDF() {
+  // 1. Récupérer les données saisies (élèves existants)
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var saisies = [];
+  rows.forEach(function(row) {
+    var nomI  = row.querySelector('input[type="text"]:not([data-obs])') || row.querySelectorAll('input')[0];
+    var obs1I = row.querySelector('input[data-obs="1"]');
+    var obs2I = row.querySelector('input[data-obs="2"]');
+    var obs3I = row.querySelector('input[data-obs="3"]');
+    var perfI = row.querySelector('input[data-obs="perf"]');
+    var sexeI = row.querySelector('select[data-obs="sexe"]');
+    var nom  = nomI  ? nomI.value.trim()  : '';
+    if (!nom) return;
+    var obs1 = obs1I ? obs1I.value.trim() : '';
+    var obs2 = obs2I ? obs2I.value.trim() : '';
+    var obs3 = obs3I ? obs3I.value.trim() : '';
+    var perf = perfI ? perfI.value.trim() : '';
+    var sexe = sexeI ? sexeI.value : '';
+    saisies.push({ nom: nom, sexe: sexe, obs1: obs1, obs2: obs2, obs3: obs3, perf: perf });
+  });
+
+  // 2. Construire les 40 lignes : d'abord les élèves saisis, puis des lignes vides
+  var totalLignes = 40;
+  var lignes = [];
+  // Ajouter les élèves saisis
+  saisies.forEach(function(s, idx) {
+    lignes.push({ 
+      num: idx + 1, 
+      nom: s.nom, 
+      sexe: s.sexe, 
+      obs1: s.obs1, 
+      obs2: s.obs2, 
+      obs3: s.obs3, 
+      perf: s.perf 
+    });
+  });
+  // Compléter avec des lignes vides
+  var nbVides = totalLignes - lignes.length;
+  for (var i = 0; i < nbVides; i++) {
+    lignes.push({ 
+      num: lignes.length + 1, 
+      nom: '', 
+      sexe: '', 
+      obs1: '', 
+      obs2: '', 
+      obs3: '', 
+      perf: '' 
+    });
+  }
+
+  var cl = (typeof getClasseActive === 'function') ? getClasseActive() : null;
+  var classeNom = cl ? cl.nom : 'Classe';
+  var niveau = getNiveauClasse();
+  var d = new Date();
+  var dateStr = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+
+  /* Construction du tableau — 40 lignes strictes */
+  var tbody = '';
+  lignes.forEach(function(l) {
+    var bgRow = l.num % 2 === 0 ? 'background:#fafafa;' : '';
+    // Formatage du numéro sur 2 chiffres
+    var numStr = String(l.num).padStart(2, '0');
+    tbody += '<tr style="' + bgRow + '">' +
+      '<td style="text-align:center;color:#888;border:1px solid #bbb;padding:5px 4px;">' + numStr + '</td>' +
+      '<td style="text-align:center;border:1px solid #bbb;padding:5px 4px;">' + escHTML(l.sexe) + '</td>' +
+      '<td style="border:1px solid #bbb;padding:5px 4px;"><strong>' + escHTML(l.nom) + '</strong></td>' +
+      '<td style="text-align:center;border:1px solid #bbb;padding:5px 4px;">' + escHTML(l.obs1) + '</td>' +
+      '<td style="text-align:center;border:1px solid #bbb;padding:5px 4px;">' + escHTML(l.obs2) + '</td>' +
+      '<td style="text-align:center;border:1px solid #bbb;padding:5px 4px;">' + escHTML(l.obs3) + '</td>' +
+      '<td style="text-align:center;border:1px solid #bbb;padding:5px 4px;">' + escHTML(l.perf) + (l.perf ? ' m' : '') + '</td>' +
+      '</tr>';
+  });
+
+  /* LÉGENDE OFFICIELLE (verso / bas de page) */
+  var legendeHtml =
+    '<div class="legende-print" style="display:block;margin-top:16px;border-top:1px solid #ccc;padding-top:10px;font-size:7.5pt;color:#333;">' +
+      '<strong>LÉGENDE DES OBSERVABLES — Lancer de Poids DI-POI (référentiel officiel ADP 2026)</strong>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-top:4px;">' +
+        '<tr><th style="border:1px solid #bbb;padding:3px 5px;background:#e8eaf2;">Observable</th><th style="border:1px solid #bbb;padding:3px 5px;background:#e8eaf2;">Niveau 1 (débutant)</th><th style="border:1px solid #bbb;padding:3px 5px;background:#e8eaf2;">Niveau 2 (intermédiaire)</th><th style="border:1px solid #bbb;padding:3px 5px;background:#e8eaf2;">Niveau 3 (avancé)</th></tr>' +
+        '<tr><td style="border:1px solid #bbb;padding:3px 5px;font-weight:700;">OBS-01 — Trajet (chaîne cinétique)</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[0].A) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[0].B) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[0].C) + '</td></tr>' +
+        '<tr><td style="border:1px solid #bbb;padding:3px 5px;font-weight:700;">OBS-02 — Trajectoire (angle / secteur)</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[1].A) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[1].B) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[1].C) + '</td></tr>' +
+        '<tr><td style="border:1px solid #bbb;padding:3px 5px;font-weight:700;">OBS-03 — Équilibre (placement sol)</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[2].A) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[2].B) + '</td><td style="border:1px solid #bbb;padding:3px 5px;">' + escHTML(CONDUITES[2].C) + '</td></tr>' +
+      '</table>' +
+      '<div style="margin-top:6px;"><strong>Codage :</strong> A = 3/10 · B = 6/10 · C = 9/10 (ou valeur numérique 0–10).</div>' +
+      '<div style="margin-top:4px;"><strong>Seuils indicatifs (Garçons) :</strong> 1AC : 3,74 m · 2AC : 4,01 m · 3AC : 4,88 m · TC : 6,06 m · 1BAC : 6,49 m · 2BAC : 7,17 m</div>' +
+      '<div style="margin-top:2px;"><strong>Seuils indicatifs (Filles) :</strong> 1AC : 3,39 m · 2AC : 3,64 m · 3AC : 4,05 m · TC : 4,37 m · 1BAC : 4,45 m · 2BAC : 4,67 m</div>' +
+      '<div style="margin-top:6px;font-style:italic;">— Document terrain · Ne pas utiliser comme bulletin officiel —</div>' +
+    '</div>';
+
+  /* Page complète avec en-tête officiel — 40 lignes systématiques */
+  var htmlComplet =
+    '<div style="font-family:Segoe UI,Arial,sans-serif;max-width:1100px;margin:0 auto;">' +
+      '<div style="border-bottom:2px solid #333;padding-bottom:8px;margin-bottom:14px;">' +
+        '<div style="font-size:14pt;font-weight:800;color:#111;">GRILLE TERRAIN LDP – DIAGNOSTIQUE INITIAL (' + escHTML(classeNom) + ' – ADP 2026)</div>' +
+        '<div style="font-size:9pt;color:#555;margin-top:2px;">Formateur : M. BOUARGANE (CRMEF Inezgane) · EPS · Lancer de Poids · Établi le ' + dateStr + ' · Niveau : ' + escHTML(niveau) + '</div>' +
+        '<div style="font-size:8pt;color:#777;margin-top:2px;">Règles de saisie : Coder chaque observable en A/B/C ou 0–10 · Performance en mètres · 40 places</div>' +
+      '</div>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:8.5pt;">' +
+        '<thead>' +
+          '<tr style="background:#e8eaf2;">' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;width:28px;">N°</th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;width:28px;">Sexe</th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:left;">Nom &amp; Prénom</th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;">OBS-01<br><small style="font-weight:400;color:#555;">Trajet</small></th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;">OBS-02<br><small style="font-weight:400;color:#555;">Trajectoire</small></th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;">OBS-03<br><small style="font-weight:400;color:#555;">Équilibre</small></th>' +
+            '<th style="padding:5px 4px;border:1px solid #bbb;text-align:center;">PERF<br><small style="font-weight:400;color:#555;">(m)</small></th>' +
+          '</tr>' +
+        '</thead>' +
+        '<tbody>' + tbody + '</tbody>' +
+      '</table>' +
+      '<p style="margin-top:8px;font-size:8pt;color:#888;">Total : ' + lignes.length + ' places · ' + saisies.length + ' élève(s) saisi(s) · ' + nbVides + ' ligne(s) vierge(s)</p>' +
+      legendeHtml +
+    '</div>';
+
+  var win = window.open('', '_blank');
+  if (!win) {
+    alert('Autorisez les pop-ups de cette page pour exporter le PDF, puis réessayez.');
+    return;
+  }
+  win.document.write('<!DOCTYPE html><html lang="fr"><head>');
+  win.document.write('<meta charset="UTF-8">');
+  win.document.write('<title>Grille terrain — ' + escHTML(classeNom) + ' — ADP 2026</title>');
+  win.document.write('<style>body{margin:1.2cm;background:#fff;color:#111;font-family:Segoe UI,Arial,sans-serif;}@page{margin:1.2cm;size:A4 portrait;}table{font-size:8.5pt;}</style>');
+  win.document.write('</head><body>' + htmlComplet + '</body></html>');
+  win.document.close();
+  win.onload = function() { win.focus(); win.print(); };
+  setTimeout(function() { try { win.focus(); win.print(); } catch(ex){} }, 600);
+}
+
+/* ================================================================
+   GESTION MULTI-CLASSES
+   ================================================================ */
+var classes = [];
+var classeActiveId = null;
+
+function initClasses() {
+  var raw = localStorage.getItem('adp_classes');
+  try { classes = raw ? JSON.parse(raw) : []; } catch(e) { classes = []; }
+  if (classes.length === 0) {
+    var def = { id: 'classe_1', nom: '3ème A', donnees: null };
+    classes.push(def);
+    classeActiveId = def.id;
+  } else {
+    classeActiveId = localStorage.getItem('adp_classe_active') || classes[0].id;
+  }
+  sauvegarderClasses();
+  renderClassesTabs();
+}
+function sauvegarderClasses() {
+  localStorage.setItem('adp_classes', JSON.stringify(classes));
+  localStorage.setItem('adp_classe_active', classeActiveId);
+}
+function getClasseActive() { return classes.find(function(c) { return c.id === classeActiveId; }) || classes[0]; }
+function renderClassesTabs() {
+  var container = document.getElementById('classes-tabs'); if (!container) return;
+  container.innerHTML = '';
+  classes.forEach(function(cl) {
+    var wrap = document.createElement('span'); wrap.className = 'classe-tab-wrap';
+    var tab = document.createElement('button');
+    tab.className = 'classe-tab' + (cl.id === classeActiveId ? ' active' : '');
+    tab.textContent = cl.nom; tab.title = 'Clic : activer · Double-clic : renommer';
+    tab.onclick = function() { switcherClasse(cl.id); };
+    tab.ondblclick = function() { renommerClasse(cl.id); };
+    var del = document.createElement('button');
+    del.className = 'classe-del'; del.textContent = '×'; del.title = 'Supprimer';
+    del.onclick = function(e) { e.stopPropagation(); supprimerClasse(cl.id); };
+    wrap.appendChild(tab);
+    if (classes.length > 1) wrap.appendChild(del);
+    container.appendChild(wrap);
+  });
+}
+function switcherClasse(id) {
+  sauvegarderDonneesClasse(classeActiveId);
+  classeActiveId = id; sauvegarderClasses();
+  chargerDonneesClasse(id);
+  renderClassesTabs();
+  eleves = [];
+  document.getElementById('results1').style.display = 'none';
+  document.getElementById('form-err').innerHTML = '';
+  var cl = getClasseActive();
+  showImportMsg('Classe "' + cl.nom + '" chargée.', 'info');
+}
+function sauvegarderDonneesClasse(id) {
+  var rows = document.querySelectorAll('#rows-container .student-row');
+  var data = [];
+  rows.forEach(function(row) {
+    var nomI=row.querySelector('input[type="text"]:not([data-obs])')||row.querySelectorAll('input')[0];
+    var obs1I=row.querySelector('input[data-obs="1"]'), obs2I=row.querySelector('input[data-obs="2"]');
+    var obs3I=row.querySelector('input[data-obs="3"]');
+    var perfI=row.querySelector('input[data-obs="perf"]');
+    var sexeI=row.querySelector('select[data-obs="sexe"]');
+    data.push({ nom:nomI?nomI.value:'', sexe:sexeI?sexeI.value:'', obs1:obs1I?obs1I.value:'', obs2:obs2I?obs2I.value:'', obs3:obs3I?obs3I.value:'', perf:perfI?perfI.value:'' });
+  });
+  var cl = classes.find(function(c) { return c.id === id; });
+  if (cl) cl.donnees = data;
+  sauvegarderClasses();
+}
+function chargerDonneesClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; });
+  document.getElementById('rows-container').innerHTML = '';
+  if (cl && cl.donnees && cl.donnees.length > 0) {
+    cl.donnees.forEach(function(d) { addRow(d.nom, d.sexe, d.obs1, d.obs2, d.obs3, d.perf); });
+  } else {
+    for (var i = 0; i < 5; i++) addRow();
+  }
+}
+function ajouterClasse() {
+  var nom = prompt('Nom de la nouvelle classe (ex: 3ème B) :');
+  if (!nom || !nom.trim()) return;
+  sauvegarderDonneesClasse(classeActiveId);
+  var id = 'classe_' + Date.now();
+  classes.push({ id: id, nom: nom.trim(), donnees: null });
+  classeActiveId = id; sauvegarderClasses();
+  document.getElementById('rows-container').innerHTML = '';
+  for (var i = 0; i < 5; i++) addRow();
+  eleves = [];
+  document.getElementById('results1').style.display = 'none';
+  renderClassesTabs();
+  showImportMsg('Nouvelle classe "' + nom.trim() + '" créée.', 'info');
+}
+function renommerClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; }); if (!cl) return;
+  var nouveau = prompt('Nouveau nom pour "' + cl.nom + '" :', cl.nom);
+  if (!nouveau || !nouveau.trim()) return;
+  cl.nom = nouveau.trim(); sauvegarderClasses(); renderClassesTabs();
+}
+function supprimerClasse(id) {
+  var cl = classes.find(function(c) { return c.id === id; }); if (!cl) return;
+  if (!confirm('Supprimer la classe "' + cl.nom + '" ?')) return;
+  classes = classes.filter(function(c) { return c.id !== id; });
+  if (classeActiveId === id) { classeActiveId = classes[0].id; chargerDonneesClasse(classeActiveId); }
+  sauvegarderClasses(); renderClassesTabs();
+}
+
+// Patch sauvegarderDonnees pour inclure la classe active
+var _origSauvegarderDonnees = sauvegarderDonnees;
+sauvegarderDonnees = function() { _origSauvegarderDonnees(); sauvegarderDonneesClasse(classeActiveId); };
+
+// Patch addRow pour mode tablette
+var _origAddRow2 = addRow;
+addRow = function(nom, sexe, v1, v2, v3, perf) {
+  _origAddRow2(nom, sexe, v1, v2, v3, perf);
+  if (tabletMode) {
+    var rows = document.querySelectorAll('#rows-container .student-row');
+    var lastRow = rows[rows.length - 1];
+    if (lastRow) injecterBoutonsObs(lastRow);
+  }
+};
+
+/* ================================================================
+   BANDEAU CONFIDENTIALITÉ
+   ================================================================ */
+function fermerBandeauPrivacy() {
+  document.getElementById('privacy-banner').style.display = 'none';
+  localStorage.setItem('adp_privacy_dismissed', '1');
+}
+
+/* ================================================================
+   TUTORIEL
+   ================================================================ */
+var tutoStep = 0;
+var TUTO_TOTAL = 6;
+function initTutoDots() {
+  var container = document.getElementById('tuto-dots'); if (!container) return;
+  container.innerHTML = '';
+  for (var i = 0; i < TUTO_TOTAL; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'tuto-dot' + (i === 0 ? ' active' : '');
+    dot.id = 'tuto-dot-' + i;
+    container.appendChild(dot);
+  }
+}
+function tutoNav(dir) {
+  var oldStep = tutoStep;
+  tutoStep = Math.max(0, Math.min(TUTO_TOTAL - 1, tutoStep + dir));
+  var oldSlide = document.getElementById('tuto-slide-' + oldStep);
+  var newSlide = document.getElementById('tuto-slide-' + tutoStep);
+  if (oldSlide) oldSlide.classList.remove('active');
+  if (newSlide) newSlide.classList.add('active');
+  for (var i = 0; i < TUTO_TOTAL; i++) {
+    var dot = document.getElementById('tuto-dot-' + i); if (!dot) continue;
+    dot.className = 'tuto-dot';
+    if (i < tutoStep) dot.classList.add('done');
+    else if (i === tutoStep) dot.classList.add('active');
+  }
+  var fill = document.getElementById('tuto-prog-fill');
+  if (fill) fill.style.width = Math.round((tutoStep + 1) / TUTO_TOTAL * 100) + '%';
+  var prev = document.getElementById('tuto-prev'); if (prev) prev.style.display = tutoStep > 0 ? 'inline-block' : 'none';
+  var next = document.getElementById('tuto-next'); if (next) next.textContent = tutoStep === TUTO_TOTAL - 1 ? 'Commencer ✓' : 'Suivant ›';
+  if (dir > 0 && tutoStep === TUTO_TOTAL - 1 && oldStep === TUTO_TOTAL - 1) fermerTutoriel();
+}
+function ouvrirTutoriel() {
+  tutoStep = 0; initTutoDots();
+  for (var i = 0; i < TUTO_TOTAL; i++) { var s = document.getElementById('tuto-slide-' + i); if (s) s.classList.toggle('active', i === 0); }
+  var fill = document.getElementById('tuto-prog-fill'); if (fill) fill.style.width = Math.round(1/TUTO_TOTAL*100) + '%';
+  var prev = document.getElementById('tuto-prev'); if (prev) prev.style.display = 'none';
+  var next = document.getElementById('tuto-next'); if (next) next.textContent = 'Suivant ›';
+  document.getElementById('tuto-overlay').classList.add('open');
+}
+function fermerTutoriel() { document.getElementById('tuto-overlay').classList.remove('open'); localStorage.setItem('adp_tuto_done', '1'); }
+
+/* ================================================================
+   INITIALISATION AU CHARGEMENT
+   ================================================================ */
+
+// Thème
+if (localStorage.getItem('adp_theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-btn').textContent = '🌙 Mode sombre';
+}
+
+// Tablette
+if (localStorage.getItem('adp_tablet') === '1') {
+  tabletMode = true;
+  document.body.classList.add('tablet-mode');
+  var tbtn = document.getElementById('tablet-toggle');
+  if (tbtn) { tbtn.textContent = '⌨️ Normal'; tbtn.classList.add('on'); }
+}
+
+// Bandeau privacy
+if (localStorage.getItem('adp_privacy_dismissed') === '1') {
+  var pb = document.getElementById('privacy-banner');
+  if (pb) pb.style.display = 'none';
+}
+
+// Multi-classes
+initClasses();
+chargerDonneesClasse(classeActiveId);
+
+// Tutoriel 1ère visite
+if (!localStorage.getItem('adp_tuto_done')) {
+  ouvrirTutoriel();
+} else {
+  initTutoDots();
+}
+
+// Slider
+updateSlider();
+
+</script>
+</body>
+</html>
